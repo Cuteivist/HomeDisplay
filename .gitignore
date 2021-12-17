@@ -1,6 +1,8 @@
-build/*
-
-.vscode/*
+build/
+.vscode/
+.idea/
+__pycache__/
+venv/
 
 # Prerequisites
 *.d
