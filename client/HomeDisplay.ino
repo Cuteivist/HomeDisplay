@@ -31,14 +31,13 @@ void setup() {
   digitalWrite(BUILTIN_LED, HIGH);
   initialiseDisplay();
 
-  int x0 = 100;
-  int y0 = 100;
-  int x1 = 350;
-  int y1 = 300;
+  int16_t x0 = 100;
+  int16_t y0 = 100;
+  int16_t x1 = 350;
+  int16_t y1 = 300;
 
-  int height = 60;
-  drawCloud(x0, y0 - height, height, Rain);
-  drawCloud(x0, y1 - height, height, Snow);
+  int16_t height = 120;
+  drawWeather(x0, y0, height, LowCloudy);
 
   display.drawLine(0, y0, SCREEN_WIDTH, y0, GxEPD_BLACK); // test line (horizontal)
   display.drawLine(0, y1, SCREEN_WIDTH, y1, GxEPD_BLACK); // test line (horizontal)

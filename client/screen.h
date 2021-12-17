@@ -71,7 +71,7 @@ void initialiseDisplay() {
 }
 
 // ########################### STRING ###########################
-void drawString(int x, int y, String text, Alignment horizontalAlignment = LEFT, Alignment verticalAlignment = TOP) {
+void drawString(int x, int16_t y, String text, Alignment horizontalAlignment = LEFT, Alignment verticalAlignment = TOP) {
     Serial.write(String("Printing text: '" + text + "'\n").c_str());
     int16_t x1, y1; // the bounds of x,y and w and h of the variable 'text' in pixels.
     uint16_t w, h;
@@ -96,28 +96,63 @@ void drawString(int x, int y, String text, Alignment horizontalAlignment = LEFT,
         default:
             break;
     }
-    // TODO add horizontal and vertical alignment as new function
     u8g2Fonts.setCursor(x, y);
     u8g2Fonts.print(text);
 }
 
 // ########################### CLOUD ###########################
-void drawRainDrop(int x, int y, int scale);
-void drawWeatherUnderCloud(int x, int y, int height, Weather weather);
+void drawRainDrop(int x, int16_t y, int16_t height, int16_t linesize);
+void drawWeatherUnderCloud(int x, int16_t y, int16_t height, Weather weather, int16_t linesize);
+void drawSnow(int x, int16_t y, int16_t height);
+void drawCloud(int x, int16_t y, int16_t height, Weather weather, bool clearInside = true);
+void drawSun(int x, int16_t y, int16_t height);
 
-void drawCloud(int x, int y, int height, Weather weather, int linesize = 2, bool clearInside = true) {
+void drawWeather(int x, int16_t y, int16_t height, Weather weather) {
+    switch(weather) {
+        case Fog:
+            // TODO draw fog
+            break;
+        case Sunny:
+            drawSun(x, y, height);
+            break;
+        case LowCloudy: {
+            const int16_t cloudOffset = height * 0.4;
+            drawSun(x, y, height);
+            drawCloud(x + cloudOffset * 0.5, y + cloudOffset, height - cloudOffset, weather);
+            break;
+        }
+        case SnowWithRain:
+        case HighCloudy:
+        case FullCloudy:
+        case Rain:
+        case Storm:
+        case Rainstorm:
+        case Snow:
+            drawCloud(x, y, height, weather, true);
+        default:
+            // TODO write error message
+            return;
+    }
+}
+
+void drawMoon(int x, int16_t y, int16_t height, MoonPhase phase) {
+    // TODO
+}
+
+void drawCloud(int x, int16_t y, int16_t height, Weather weather, bool clearInside) {
+    const int16_t linesize = 2;
     // NOTE: width = height * 2
-    const int size = height * 0.25;
-    const int leftBottomCircleX = x + size;
-    const int leftBottomCircleY = y + size * 3;
-    const int rightBottomCircleX = x + size * 7;
-    const int rightBottomCircleY = leftBottomCircleY;
-    const int leftUpperCircleX = x + size * 3;
-    const int leftUpperCircleY = y + size * 2;
-    const int rightUpperCircleX = x + size * 5;
-    const int rightUpperCircleY = y + size * 1.7 + 1;
-    const int rectLinesX = x + size - 1;
-    const int rectLinesY = y + size * 2;
+    const int16_t size = height * 0.25;
+    const int16_t leftBottomCircleX = x + size;
+    const int16_t leftBottomCircleY = y + size * 3;
+    const int16_t rightBottomCircleX = x + size * 7;
+    const int16_t rightBottomCircleY = leftBottomCircleY;
+    const int16_t leftUpperCircleX = x + size * 3;
+    const int16_t leftUpperCircleY = y + size * 2;
+    const int16_t rightUpperCircleX = x + size * 5;
+    const int16_t rightUpperCircleY = y + size * 1.7 + 1;
+    const int16_t rectLinesX = x + size - 1;
+    const int16_t rectLinesY = y + size * 2;
 
     display.fillCircle(leftBottomCircleX, leftBottomCircleY, size, GxEPD_BLACK);
     display.fillCircle(rightBottomCircleX, rightBottomCircleY, size, GxEPD_BLACK);
@@ -132,38 +167,69 @@ void drawCloud(int x, int y, int height, Weather weather, int linesize = 2, bool
         display.fillRect(rectLinesX + 1, rectLinesY + linesize, size * 5.9, size * 2 - linesize * 2 + 1, GxEPD_WHITE);
     }
 
-    drawWeatherUnderCloud(x, y + height, height, weather);
+    drawWeatherUnderCloud(x, y + height, height, weather, linesize);
 }
 
-void drawWeatherUnderCloud(int x, int y, int height, Weather weather) {
+void drawWeatherUnderCloud(int x, int16_t y, int16_t height, Weather weather, int16_t linesize) {
     // NOTE y should be bottom of the cloud
     switch (weather) {
     case Rain:
-        for (int d = 0; d < 4; d++) {
-            int scale = height * 0.2;
-            drawRainDrop(x + scale * (7.8 - d * 1.95) - scale * 2, y + scale * 2.1 - scale / 6, scale / 1.6);
+        for (int i = 0; i < 5; i++) {
+            int16_t size = height * 0.175;
+            drawRainDrop(x + size * 2 + i * size * 1.5, y, size, linesize);
+            drawRainDrop(x + size * 1.25 + i * size * 1.5, y + size * 1.5, size, linesize);
         }
         break;
     case Snow:
+        // drawSnow(x + height, y, height * 0.2);
         break;
     default:
         break;
     }
 }
 
-// ###############################################################################
-/// CODE TO UPDATE
-void drawRainDrop(int x, int y, int scale) {
-    display.fillCircle(x, y, scale / 2, GxEPD_BLACK);
-    display.fillTriangle(x - scale / 2, y, x, y - scale * 1.2, x + scale / 2, y, GxEPD_BLACK);
-    x = x + scale * 1.6;
-    y = y + scale / 3;
-    display.fillCircle(x, y, scale / 2, GxEPD_BLACK);
-    display.fillTriangle(x - scale / 2, y, x, y - scale * 1.2, x + scale / 2, y, GxEPD_BLACK);
+void drawRainDrop(int x, int16_t y, int16_t height, int16_t linesize) {
+    for (int i = 0; i < linesize; i++) {
+        display.drawLine(x + i, y + height * 0.5, x - height * 0.5 + i, y + height * 1.5, GxEPD_BLACK);
+    }
 }
 
-void drawSnow(int x, int y, int scale) {
-    int dxo, dyo, dxi, dyi;
+void drawSun(int x, int16_t y, int16_t height) {
+    const int16_t linesize = 3;
+    const int16_t halfSize = height * 0.5;
+    const int16_t middleX = x + halfSize;
+    const int16_t middleY = y + halfSize;
+    const int16_t circleRadius = height * 0.2;
+    const int16_t offsetBetweenCenterAndLines = circleRadius * 1.5;
+
+    // Values for diagonal lines
+    const int16_t diagonalLineSize = halfSize / 1.4;
+    const int16_t diagonalLeftX = (middleX - diagonalLineSize);
+    const int16_t diagonalRightX = (middleX + diagonalLineSize);
+    const int16_t diagonalTopY = (middleY - diagonalLineSize);
+    const int16_t diagonalBottomY = (middleY + diagonalLineSize);
+
+    // left and right lines
+    display.fillRect(x, middleY, height, linesize, GxEPD_BLACK);
+    // top and bottom lines
+    display.fillRect(middleX, y, linesize, height, GxEPD_BLACK);
+    for (int i = 0; i < linesize + 1; i++) {
+        // top left to bottom right lines
+        display.drawLine(i + diagonalLeftX, diagonalTopY, i + diagonalRightX, diagonalBottomY, GxEPD_BLACK);
+        // bottom left to top right lines
+        display.drawLine(i + diagonalLeftX, diagonalBottomY, i + diagonalRightX, diagonalTopY, GxEPD_BLACK);
+    }
+    // Create offset between sun circle and lines
+    display.fillCircle(middleX, middleY, offsetBetweenCenterAndLines, GxEPD_WHITE);
+    // Drawing circle and clearing inside
+    display.fillCircle(middleX, middleY, circleRadius, GxEPD_BLACK);
+    display.fillCircle(middleX, middleY, circleRadius - linesize, GxEPD_WHITE);
+}
+
+// ###############################################################################
+/// CODE TO UPDATE
+void drawSnow(int x, int16_t y, int16_t scale) {
+    int16_t dxo, dyo, dxi, dyi;
     for (int flakes = 0; flakes < 5; flakes++) {
         for (int i = 0; i < 360; i = i + 45) {
             // TOOD extract it to `drawSnowFlake`
@@ -175,7 +241,7 @@ void drawSnow(int x, int y, int scale) {
         }
     }
 }
-void drawStorm(int x, int y, int scale) {
+void drawStorm(int x, int16_t y, int16_t scale) {
     y = y + scale / 2;
     for (int i = 0; i < 5; i++) {
         display.drawLine(x - scale * 4 + scale * i * 1.5 + 0, y + scale * 1.5, x - scale * 3.5 + scale * i * 1.5 + 0, y + scale, GxEPD_BLACK);
@@ -195,27 +261,7 @@ void drawStorm(int x, int y, int scale) {
         }
     }
 }
-void drawSun(int x, int y, int scale, bool isLarge) {
-    int linesize = 3;
-    if (!isLarge)
-        linesize = 1;
-    display.fillRect(x - scale * 2, y, scale * 4, linesize, GxEPD_BLACK);
-    display.fillRect(x, y - scale * 2, linesize, scale * 4, GxEPD_BLACK);
-    display.drawLine(x - scale * 1.3, y - scale * 1.3, x + scale * 1.3, y + scale * 1.3, GxEPD_BLACK);
-    display.drawLine(x - scale * 1.3, y + scale * 1.3, x + scale * 1.3, y - scale * 1.3, GxEPD_BLACK);
-    if (isLarge) {
-        display.drawLine(1 + x - scale * 1.3, y - scale * 1.3, 1 + x + scale * 1.3, y + scale * 1.3, GxEPD_BLACK);
-        display.drawLine(2 + x - scale * 1.3, y - scale * 1.3, 2 + x + scale * 1.3, y + scale * 1.3, GxEPD_BLACK);
-        display.drawLine(3 + x - scale * 1.3, y - scale * 1.3, 3 + x + scale * 1.3, y + scale * 1.3, GxEPD_BLACK);
-        display.drawLine(1 + x - scale * 1.3, y + scale * 1.3, 1 + x + scale * 1.3, y - scale * 1.3, GxEPD_BLACK);
-        display.drawLine(2 + x - scale * 1.3, y + scale * 1.3, 2 + x + scale * 1.3, y - scale * 1.3, GxEPD_BLACK);
-        display.drawLine(3 + x - scale * 1.3, y + scale * 1.3, 3 + x + scale * 1.3, y - scale * 1.3, GxEPD_BLACK);
-    }
-    display.fillCircle(x, y, scale * 1.3, GxEPD_WHITE);
-    display.fillCircle(x, y, scale, GxEPD_BLACK);
-    display.fillCircle(x, y, scale - linesize, GxEPD_WHITE);
-}
-void drawFog(int x, int y, int scale, int linesize, bool isLarge) {
+void drawFog(int x, int16_t y, int16_t scale, int16_t linesize, bool isLarge) {
     if (!isLarge) {
         y -= 10;
         linesize = 1;
