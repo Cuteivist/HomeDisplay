@@ -5,14 +5,7 @@
 
 #include <SPI.h>
 #include <WiFi.h>                     // Built-in
-#include "time.h"                     // Built-
-
-//################ VARIABLES ###########################################
-boolean LargeIcon = true, SmallIcon = false;
-#define Large  17           // For icon drawing, needs to be odd number for best effect
-#define Small  6            // For icon drawing, needs to be odd number for best effect
-String  Time_str, Date_str; // strings to hold time and received weather data
-
+#include "time.h"                     // Built-in
 
 //################ PROGRAM VARIABLES and OBJECTS ################
 #define max_readings 24
@@ -38,7 +31,19 @@ void setup() {
   digitalWrite(BUILTIN_LED, HIGH);
   initialiseDisplay();
 
-  drawString(100, 100, "TEST STRING", CENTER);
+  int x0 = 100;
+  int y0 = 100;
+  int x1 = 350;
+  int y1 = 300;
+
+  int height = 60;
+  drawCloud(x0, y0 - height, height, Rain);
+  drawCloud(x0, y1 - height, height, Snow);
+
+  display.drawLine(0, y0, SCREEN_WIDTH, y0, GxEPD_BLACK); // test line (horizontal)
+  display.drawLine(0, y1, SCREEN_WIDTH, y1, GxEPD_BLACK); // test line (horizontal)
+  display.drawLine(x0, 0, x0, SCREEN_HEIGHT, GxEPD_BLACK); // test line (vertical)
+  display.drawLine(x1, 0, x1, SCREEN_HEIGHT, GxEPD_BLACK); // test line (vertical)
   display.display(true);
 }
 
