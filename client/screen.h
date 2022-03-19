@@ -29,6 +29,8 @@ public:
         Rainstorm,
         Snow,
         SnowWithRain,
+        WindyCloud,
+        Windy,
         Fog
     };
 
@@ -64,5 +66,7 @@ private:
     void drawSnowFlake(int16_t x, int16_t y, int16_t height, int16_t linesize = 2);
     void drawThunder(int16_t x, int16_t y, int16_t height, int16_t linesize = 2);
     void drawWeatherUnderCloud(int16_t x, int16_t y, int16_t height, Weather weather, int16_t linesize = 2);
+    void drawFog(int16_t x, int16_t y, int16_t height, int16_t linesize = 2);
+    void drawWind(int16_t x, int16_t y, int16_t height, int16_t linesize = 2);
 };
 #endif // SCREEN_H

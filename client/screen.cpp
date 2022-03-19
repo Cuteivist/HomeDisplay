@@ -86,8 +86,11 @@ void Screen::drawString(int16_t x, int16_t y, String text, Alignment horizontalA
 void Screen::drawWeather(int16_t x, int16_t y, int16_t height, Weather weather)
 {
     switch (weather) {
+    case Windy:
+        drawWind(x, y, height);
+        break;
     case Fog:
-        // TODO draw fog
+        drawFog(x, y, height);
         break;
     case Sunny:
         drawSun(x, y, height);
@@ -110,6 +113,7 @@ void Screen::drawWeather(int16_t x, int16_t y, int16_t height, Weather weather)
     case Storm:
     case Rainstorm:
     case Snow:
+    case WindyCloud:
     case Rain: {
         const int16_t cloudHeight = height * 0.6;
         drawCloud(x, y, cloudHeight, weather, true);
@@ -259,6 +263,13 @@ void Screen::drawWeatherUnderCloud(int16_t x, int16_t y, int16_t height, Weather
         }
         break;
     }
+    case WindyCloud: {
+        const int16_t windWidth = height * 0.5;
+        const int16_t leftX = x + (height * 2);
+        mDisplay.fillRect(leftX, y - height * 0.75, windWidth + height * 0.7, height * 0.9, GxEPD_WHITE);
+        drawWind(leftX - height * 0.2, y - height * 0.75, height * 2, linesize);
+        break;
+    }
     default:
         break;
     }
@@ -325,6 +336,60 @@ void Screen::drawSun(int16_t x, int16_t y, int16_t height, int16_t linesize)
     mDisplay.fillCircle(middleX, middleY, circleRadius - linesize, GxEPD_WHITE);
 }
 
+void Screen::drawFog(int16_t x, int16_t y, int16_t height, int16_t linesize)
+{
+    const int16_t lineCount = 8;
+    // NOTE!! make sure that arrays has same length as lineCount
+    const float widthOffsets[8] = { 0.05, 0.1, 0.2, 0.3, 0.4, 0.35, 0.2, 0.25 };
+    const float widthMultipliers[8] = { 0.9, 0.75, 0.7, 0.65, 0.45, 0.35, 0.25, 0.15 };
+    const int16_t spacing = (height - (lineCount * linesize)) / lineCount;
+    int16_t width = 0;
+
+    for (int i = 0 ; i < lineCount ; i++) {
+        const int16_t xPos = x + height * widthOffsets[i];
+        y += spacing;
+        width = height * widthMultipliers[i];
+        mDisplay.fillRect(xPos, y, width, linesize, GxEPD_BLACK);
+    }
+}
+
+void Screen::drawWind(int16_t x, int16_t y, int16_t height, int16_t linesize) 
+{
+    const int16_t spacing = (height - (4 * linesize)) / 8;
+    // Initial offset
+    x += height * 0.1;
+    y += spacing;
+    // First small line
+    mDisplay.fillRect(x + height * 0.05, y, height * 0.2, linesize, GxEPD_BLACK);
+    y += spacing;
+    // Second Line with arc to the top
+    int16_t radius = height * 0.08;
+    int16_t circleXPos = x + height * 0.6;
+    int16_t circleYPos = y - radius;
+    mDisplay.fillCircle(circleXPos, circleYPos, radius, GxEPD_BLACK);
+    mDisplay.fillCircle(circleXPos, circleYPos, radius - linesize, GxEPD_WHITE);
+    // Clear part of the circle
+    mDisplay.fillRect(circleXPos - radius, circleYPos, radius, radius, GxEPD_WHITE);
+    mDisplay.fillRect(x + height * 0.1, y, height * 0.5, linesize, GxEPD_BLACK);
+    y += spacing;
+    // Two small ines
+    mDisplay.fillRect(x + height * 0.15, y, height * 0.25, linesize, GxEPD_BLACK);
+    mDisplay.fillRect(x + height * 0.45, y, height * 0.1, linesize, GxEPD_BLACK);
+    y += spacing;
+    // Line with arc to bottom
+    circleXPos = x + height * 0.5;
+    circleYPos = y + radius;
+    mDisplay.fillCircle(circleXPos, circleYPos, radius, GxEPD_BLACK);
+    mDisplay.fillCircle(circleXPos, circleYPos, radius - linesize, GxEPD_WHITE);
+    // Clear part of the circle
+    mDisplay.fillRect(circleXPos - radius, circleYPos - radius, radius, radius * 2, GxEPD_WHITE);
+    mDisplay.fillRect(x, y, height * 0.5, linesize, GxEPD_BLACK);
+    y += spacing;
+    // Small line
+    mDisplay.fillRect(x + height * 0.25, y, height * 0.15, linesize, GxEPD_BLACK);
+
+}
+
 String Screen::weatherToString(Weather weather) const
 {
     switch (weather) {
@@ -346,6 +411,10 @@ String Screen::weatherToString(Weather weather) const
         return "SnowWithRain";
     case Fog:
         return "Fog";
+    case Windy:
+        return "Windy";
+    case WindyCloud:
+        return "WindyCloud";
     }
     return "UNKNOWN";
 }
