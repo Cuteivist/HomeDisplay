@@ -1,11 +1,7 @@
 #ifndef WEATHERDRAWER_H
 #define WEATHERDRAWER_H
 
-#include <GxEPD2_BW.h>
-#include <U8g2_for_Adafruit_GFX.h>
-
-#define SCREEN_WIDTH 800 // Set for landscape mode
-#define SCREEN_HEIGHT 480
+#include <WString.h>
 
 class WeatherDrawer {
 public:

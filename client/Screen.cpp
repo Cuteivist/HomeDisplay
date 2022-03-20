@@ -88,59 +88,7 @@ WeatherDrawer* Screen::weatherDrawer()
     return &mWeatherDrawer;
 }
 
-void Screen::drawMoon(int16_t x, int16_t y, int16_t height, MoonPhase phase, int16_t linesize)
+PlotDrawer* Screen::plotDrawer()
 {
-    const int16_t radius = height * 0.5;
-    const int16_t moonX = x + radius;
-    const int16_t moonY = y + radius;
-    mDisplay.fillCircle(moonX, moonY, radius, GxEPD_BLACK);
-    bool isLeftSide = true;
-    switch (phase) {
-    case NewMoon:
-        break;
-    case WaningCrescent: // Fallthrough
-        isLeftSide = false;
-    case WaxingCrescent: {
-        const int16_t biggerRadius = radius * 1.1;
-        for (int16_t i = 0; i < height * 0.3; i++) {
-            mDisplay.drawCircle(moonX + i, moonY, biggerRadius, GxEPD_WHITE);
-        }
-        for (int16_t i = 0; i < linesize; i++) {
-            mDisplay.drawCircle(moonX, moonY, radius - i, GxEPD_BLACK);
-        }
-        break;
-    }
-    case LastQuarter: // Fallthrough
-        isLeftSide = false;
-    case FirstQuarter: {
-        const int16_t rectX = isLeftSide ? x + radius : x;
-        const int16_t rectWidth = isLeftSide ? radius + linesize : radius;
-        mDisplay.fillRect(rectX, y, rectWidth, height + linesize, GxEPD_WHITE);
-        for (int16_t i = 0; i < linesize; i++) {
-            mDisplay.drawCircle(moonX, moonY, radius - i, GxEPD_BLACK);
-        }
-        break;
-    }
-    case WaxingGibbous:
-        isLeftSide = false;
-    case WaningGibbous: {
-        const int16_t secondCircleCenterX = moonX + radius * 0.6 * (isLeftSide ? -1 : 1);
-        mDisplay.fillCircle(secondCircleCenterX, moonY, radius - linesize, GxEPD_WHITE);
-        for (int16_t i = 0; i < linesize; i++) {
-            mDisplay.drawCircle(moonX, moonY, radius - i, GxEPD_BLACK);
-        }
-        break;
-    }
-    case FullMoon:
-        mDisplay.fillCircle(moonX, moonY, radius - linesize, GxEPD_WHITE);
-        break;
-    }
+    return &mPlotDrawer;
 }
-
-void Screen::drawCloud(int16_t x, int16_t y, int16_t height, Weather weather, bool clearInside, int16_t linesize)
-{
-    // NOTE: width is around height * 2
-    const int16_t size = height * 0.25;
-    const int16_t leftBottomCircleX = x + size;
-    const int16_t leftBottomCircleY = y + size * 3;
-    const int16_t rightBottomCircleX = x + size * 7;

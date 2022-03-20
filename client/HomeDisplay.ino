@@ -1,4 +1,4 @@
-#include "screen.h"
+#include "Screen.h"
 
 #define BUILTIN_LED 13
 
@@ -20,7 +20,8 @@ void setup()
 
     Screen screen;
 
-    debugPrintAllWeathersAndMoons(screen);
+    // debugPrintAllWeathersAndMoons(screen);
+    // debugDrawPlot(screen);
 }
 
 //#########################################################################################
@@ -35,7 +36,17 @@ void changeLed(bool show)
 }
 
 //################################### DEBUG ######################################################
-void debugPrintAllWeathersAndMoons(Screen &screen) {
+void debugDrawPlot(Screen &screen) 
+{
+    std::vector<float> data = { 1.5, 1.5, 3.0, 3.5, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0, 14.0, 13.0, 12.0, 11.0, 10.0, 9.0, 20.0 };
+    std::vector<float> data2 = { 1.5, 1.5, 3.0, 3.5, 5.0, 6.0, 12.0, 11.0, 10.0, 9.0, 20.0 };
+    std::vector<float> yValues = { 0.0, 6.0, 12.0, 18.0, 24.0 };
+    screen.plotDrawer()->drawPlot(40, 20, 250, 300, "Line graph", yValues, data, false);
+    screen.plotDrawer()->drawPlot(400, 20, 250, 300, "Bar graph", yValues, data, true);
+}
+
+void debugPrintAllWeathersAndMoons(Screen &screen) 
+{
     const int lastWeather = (int)WeatherDrawer::Fog;
     const int spacing = 10;
     int x = spacing;
