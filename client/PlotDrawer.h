@@ -9,7 +9,8 @@ public:
     PlotDrawer();
 
     void drawPlot(int16_t x, int16_t y, int16_t width, int16_t height, String title,
-                  const std::vector<float> &yAxisValues, const std::vector<float> &data, bool isBarchart);
+                  const std::vector<float> &yAxisLabels, const std::vector<String> &yAxisLabels,
+                  const std::vector<float> &yValues, const std::vector<float> &xValues, bool isBarchart)
 };
 
 #endif // PLOTDRAWER_H

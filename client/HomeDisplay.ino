@@ -21,7 +21,7 @@ void setup()
     Screen screen;
 
     // debugPrintAllWeathersAndMoons(screen);
-    // debugDrawPlot(screen);
+    debugDrawPlot(screen);
 }
 
 //#########################################################################################

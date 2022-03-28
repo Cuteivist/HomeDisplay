@@ -8,9 +8,11 @@ PlotDrawer::PlotDrawer()
 }
 
 void PlotDrawer::drawPlot(int16_t x, int16_t y, int16_t width, int16_t height, String title,
-                          const std::vector<float> &yAxisValues, const std::vector<float> &data, bool isBarchart)
+                          const std::vector<float> &yAxisLabels, const std::vector<float> &yAxisLabels,
+                          const std::vector<float> &yValues, const std::vector<float> &xValues, bool isBarchart)
 {
-    if (yAxisValues.empty()) {
+    // TODO split barchart and lines plot, because bar chart doesn't need x labels
+    if (yAxisLabels.empty()) {
         Screen::drawString(x, y, "ERROR: Empty y values!");
         return;
     }
@@ -19,19 +21,19 @@ void PlotDrawer::drawPlot(int16_t x, int16_t y, int16_t width, int16_t height, S
     const float diagramY = y + height - diagramHeight;
     const float diagramX = x + width - diagramWidth;
 
-    const float yMax = yAxisValues.back();
-    const float yMin = yAxisValues.front();
+    const float yMax = yAxisLabels.back();
+    const float yMin = yAxisLabels.front();
     float startDataX = 0, startDataY = 0, dataEndX = 0, dataEndY = 0;
     float barChartBarWidth = 0;
     float dataXOffset = 0;
 
     if (isBarchart) {
-        dataXOffset = diagramWidth / data.size();
+        dataXOffset = diagramWidth / yValues.size();
         barChartBarWidth = dataXOffset * 0.8;
     } else if (!data.empty()) {
-        dataXOffset = diagramWidth / (data.size() - 1);
+        dataXOffset = diagramWidth / (yValues.size() - 1);
         startDataX = diagramX;
-        startDataY = diagramY + (yMax - constrain(data[0], yMin, yMax)) / (yMax - yMin) * diagramHeight;
+        startDataY = diagramY + (yMax - constrain(yValues[0], yMin, yMax)) / (yMax - yMin) * diagramHeight;
     }
     // Draw graph rect
     Screen::mDisplay.drawRect(diagramX, diagramY, diagramWidth, diagramHeight, GxEPD_BLACK);
@@ -39,9 +41,10 @@ void PlotDrawer::drawPlot(int16_t x, int16_t y, int16_t width, int16_t height, S
     Screen::drawString(x + width / 2 + 6, y, title, Screen::CENTER);
 
     // Draw the data
-    for (int i = isBarchart ? 0 : 1 ; i < data.size() ; i++) {
+    for (int i = isBarchart ? 0 : 1 ; i < yValues.size() ; i++) {
+        // TODO handle X data
         dataEndX = diagramX + i * dataXOffset;
-        dataEndY = diagramY + (yMax - constrain(data[i], yMin, yMax)) / (yMax - yMin) * diagramHeight + 1;
+        dataEndY = diagramY + (yMax - constrain(yValues[i], yMin, yMax)) / (yMax - yMin) * diagramHeight + 1;
         if (isBarchart) {
             Screen::mDisplay.fillRect(dataEndX, dataEndY, barChartBarWidth, diagramY + diagramHeight - dataEndY + 2, GxEPD_BLACK);
         } else {
@@ -55,13 +58,13 @@ void PlotDrawer::drawPlot(int16_t x, int16_t y, int16_t width, int16_t height, S
     const int horizontalDashCount = 20;
     const float horizontalDashWithSpacing = diagramWidth / horizontalDashCount;
     const float horizontalDashWidth = horizontalDashWithSpacing / 2;
-    const int yAxisCount = yAxisValues.size();
+    const int yAxisCount = yAxisLabels.size();
     const int yAxisLabelOffset = -diagramWidth * 0.02;
     for (int i = 0; i < yAxisCount; i++) {
         // Draw dashed graph grid lines in the middle
         const float yOffset = (diagramHeight * i / (yAxisCount - 1));
         // Draw Y label
-        Screen::drawString(diagramX + yAxisLabelOffset , diagramY + yOffset, String(yAxisValues[yAxisCount - (i + 1)], 1), Screen::RIGHT, Screen::CENTER);
+        Screen::drawString(diagramX + yAxisLabelOffset , diagramY + yOffset, String(yAxisLabels[yAxisCount - (i + 1)], 1), Screen::RIGHT, Screen::CENTER);
         if (i == 0 || i == yAxisCount - 1) {
             continue;
         }
