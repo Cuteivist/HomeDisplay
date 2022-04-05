@@ -1,5 +1,7 @@
 #include "Screen.h"
 
+#include <vector>
+
 #define BUILTIN_LED 13
 
 // Connections for Adafruit ESP32 Feather
@@ -38,11 +40,21 @@ void changeLed(bool show)
 //################################### DEBUG ######################################################
 void debugDrawPlot(Screen &screen) 
 {
-    std::vector<float> data = { 1.5, 1.5, 3.0, 3.5, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0, 14.0, 13.0, 12.0, 11.0, 10.0, 9.0, 20.0 };
-    std::vector<float> data2 = { 1.5, 1.5, 3.0, 3.5, 5.0, 6.0, 12.0, 11.0, 10.0, 9.0, 20.0 };
-    std::vector<float> yValues = { 0.0, 6.0, 12.0, 18.0, 24.0 };
-    screen.plotDrawer()->drawPlot(40, 20, 250, 300, "Line graph", yValues, data, false);
-    screen.plotDrawer()->drawPlot(400, 20, 250, 300, "Bar graph", yValues, data, true);
+    AxisData x, y;
+    y.labels = std::vector<String> { "0.0", "6.0", "12.0", "18.0", "24.0" };
+    y.values = std::vector<float> { 1.5, 1.5, 3.0, 3.5, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0, 14.0, 13.0, 12.0, 11.0, 10.0, 9.0, 20.0 };
+    y.min = 0;
+    y.max = 24;
+
+    for (int i = 0 ; i < y.values.size() ; i++) {
+        x.values.push_back(i+5);
+    }
+    x.labels = std::vector<String> { "0" , "5", "10", "15", "20"};
+    x.min = 0;
+    x.max = 20;
+    // std::vector<float> yValues2 = { 1.5, 1.5, 3.0, 3.5, 5.0, 6.0, 12.0, 11.0, 10.0, 9.0, 20.0 };
+    screen.plotDrawer()->drawPlot(40, 20, 250, 300, "Line graph", y, x);
+    screen.plotDrawer()->drawBarchart(400, 20, 250, 300, "Bar graph", y);
 }
 
 void debugPrintAllWeathersAndMoons(Screen &screen) 
