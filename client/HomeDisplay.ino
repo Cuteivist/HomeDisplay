@@ -41,20 +41,23 @@ void changeLed(bool show)
 void debugDrawPlot(Screen &screen) 
 {
     AxisData x, y;
-    y.labels = std::vector<String> { "0.0", "6.0", "12.0", "18.0", "24.0" };
-    y.values = std::vector<float> { 1.5, 1.5, 3.0, 3.5, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0, 14.0, 13.0, 12.0, 11.0, 10.0, 9.0, 20.0 };
+    y.labels = { "0.0", "6.0", "12.0", "18.0", "24.0" };
+    // y.values = { 1.5, 1.5, 3.0, 3.5, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0, 14.0, 13.0, 12.0, 11.0, 10.0, 9.0, 20.0 };
+    y.values = { 0, 10, 9, 20 };
     y.min = 0;
     y.max = 24;
 
-    for (int i = 0 ; i < y.values.size() ; i++) {
-        x.values.push_back(i+5);
-    }
-    x.labels = std::vector<String> { "0" , "5", "10", "15", "20"};
+    // for (int i = 0 ; i < y.values.size() ; i++) {
+    //     x.values.push_back(i+5);
+    // }
+    x.values = { 0, 10, 20, 25 };
+    x.labels = { "0" , "5", "10", "15", "20", "25"};
     x.min = 0;
-    x.max = 20;
-    // std::vector<float> yValues2 = { 1.5, 1.5, 3.0, 3.5, 5.0, 6.0, 12.0, 11.0, 10.0, 9.0, 20.0 };
+    x.max = 25;
+
+
     screen.plotDrawer()->drawPlot(40, 20, 250, 300, "Line graph", y, x);
-    screen.plotDrawer()->drawBarchart(400, 20, 250, 300, "Bar graph", y);
+    // screen.plotDrawer()->drawBarchart(400, 20, 250, 300, "Bar graph", y);
 }
 
 void debugPrintAllWeathersAndMoons(Screen &screen) 

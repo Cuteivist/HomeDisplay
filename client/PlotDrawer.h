@@ -23,6 +23,7 @@ private:
     void drawYLabels(int16_t x, int16_t y, int16_t width, int16_t height, const std::vector<String> &labels);
     void drawXLabels(int16_t x, int16_t y, int16_t width, int16_t height, const std::vector<String> &labels);
     float getYPos(int16_t y, int16_t height, float value, float diff) const;
+    float getXPos(int16_t x, int16_t width, float value, float diff) const;
 };
 
 #endif // PLOTDRAWER_H
