@@ -40,7 +40,6 @@ Screen::Screen()
 
 Screen::~Screen()
 {
-    display();
 }
 
 void Screen::display()
@@ -53,7 +52,7 @@ void Screen::drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint16_t c
     mDisplay.drawLine(x0, y0, x1, y1, color);
 }
 
-void Screen::drawString(int16_t x, int16_t y, String text, Alignment horizontalAlignment, Alignment verticalAlignment)
+void Screen::drawString(int16_t x, int16_t y, const String &text, Alignment horizontalAlignment, Alignment verticalAlignment)
 {
     Serial.write(String("Printing text: '" + text + "'\n").c_str());
     int16_t x1, y1; // the bounds of x,y and w and h of the variable 'text' in pixels.
@@ -91,4 +90,9 @@ WeatherDrawer* Screen::weatherDrawer()
 PlotDrawer* Screen::plotDrawer()
 {
     return &mPlotDrawer;
+}
+
+StatusDrawer* Screen::statusDrawer()
+{
+    return &mStatusDrawer;
 }
