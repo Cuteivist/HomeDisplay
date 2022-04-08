@@ -18,9 +18,10 @@ NetworkManager::~NetworkManager()
 
 bool NetworkManager::sendRequest(WiFiClient &client) 
 {
-    client.stop(); // close connection before sending a new request
+    // close connection before sending a new request
+    client.stop(); 
     HTTPClient http;
-    http.begin(client, "pc.lan", 8881, "/"); // TODO change to pi address later when server moved to PI
+    http.begin(client, serverAddress, serverPort, "/");
     int httpCode = http.GET();
     if (httpCode == HTTP_CODE_OK) {
         String payload = http.getString();
@@ -43,7 +44,7 @@ bool NetworkManager::requestDataToDraw()
 {
     int8_t Attempts = 0;
     bool GotData = false;
-    WiFiClient client; // wifi client object
+    WiFiClient client;
     BoardController::debug("Trying to send request");
     while (GotData == false && Attempts <= 2) {
         GotData = sendRequest(client);
@@ -54,20 +55,21 @@ bool NetworkManager::requestDataToDraw()
 uint8_t NetworkManager::connectToWifi() 
 {
     mSignalStrength = -1000;
-    Serial.print("\r\nConnecting to: ");
-    BoardController::debug(String(ssid));
+    BoardController::debug("Connecting to: " + String(wifiSsid));
     IPAddress dns(8, 8, 8, 8); // Google DNS
     WiFi.disconnect();
-    WiFi.mode(WIFI_STA); // switch off AP
+    // switch off AP
+    WiFi.mode(WIFI_STA); 
     WiFi.setAutoConnect(true);
     WiFi.setAutoReconnect(true);
-    WiFi.begin(ssid, password);
+    WiFi.begin(wifiSsid, wifiPassword);
     unsigned long start = millis();
     uint8_t connectionStatus;
     bool AttemptConnection = true;
     while (AttemptConnection) {
         connectionStatus = WiFi.status();
-        if (millis() > start + 15000) { // Wait 15-secs maximum
+        // Wait 15-secs maximum
+        if (millis() > start + 15000) { 
             AttemptConnection = false;
         }
         if (connectionStatus == WL_CONNECTED || connectionStatus == WL_CONNECT_FAILED) {
@@ -76,7 +78,8 @@ uint8_t NetworkManager::connectToWifi()
         delay(50);
     }
     if (connectionStatus == WL_CONNECTED) {
-        mSignalStrength = WiFi.RSSI(); // Get Wifi Signal strength now, because the WiFi will be turned off to save power!
+        // Get Wifi Signal strength now, because the WiFi will be turned off to save power!
+        mSignalStrength = WiFi.RSSI(); 
         BoardController::debug("WiFi connected at: " + WiFi.localIP().toString());
     } else
         BoardController::debug("WiFi connection *** FAILED ***");

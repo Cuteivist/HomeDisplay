@@ -14,7 +14,7 @@ public:
     static void debug(char* str);
 
 private:
-    int mStartTime = 0;
+    static int mStartTime;
 };
 
 #endif //SLEEPCONTROLLER_H

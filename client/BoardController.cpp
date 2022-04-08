@@ -1,20 +1,20 @@
 #include "BoardController.h"
 
-#include "Screen.h"   
+#include "Screen.h"
 
 #define BUILTIN_LED 13
 
+int BoardController::mStartTime = 0;
+
 BoardController::BoardController()
-    // : mStartTime(milis())
 {
+    mStartTime = millis();
     Serial.begin(115200);
-    // TODO populate start time to get board up-time
 }
 
 void BoardController::debug(const String& str)
 {
-    // TODO add timestamp to debug
-    Serial.println(String(" | ") + str);
+    Serial.println(String(" | ") + String(millis() - mStartTime) + " - " + str);
 }
 
 void BoardController::debug(char* str)
@@ -31,7 +31,7 @@ void BoardController::sleep(int16_t secs)
     digitalWrite(BUILTIN_LED, LOW);
 #endif
     debug("Entering " + String(secs) + "-secs of sleep time");
-    // debug("Awake for : " + String((millis() - mStartTime) / 1000.0, 3) + "-secs");
+    debug("Awake for : " + String((millis() - mStartTime) / 1000.0, 3) + "-secs");
     debug("Starting deep-sleep period...");
     esp_deep_sleep_start();      // Sleep for e.g. 30 minutes
 }
