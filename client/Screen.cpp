@@ -1,8 +1,11 @@
 #include "screen.h"
 
 #include "BoardController.h"
+#include "NetworkManager.h"
+#include "JsonParser.h"
 
 #include <SPI.h>
+#include "WiFiType.h"
 
 #define SMALL_CLOUD_SIZE 6
 #define BIG_CLOUD_SIZE 17
@@ -38,11 +41,6 @@ Screen::Screen()
     mDisplay.fillScreen(GxEPD_WHITE);
     mDisplay.setFullWindow();
     BoardController::debug("Display initialization finished.");
-}
-
-Screen::~Screen()
-{
-    display();
 }
 
 void Screen::display()
@@ -123,4 +121,42 @@ PlotDrawer* Screen::plotDrawer()
 StatusDrawer* Screen::statusDrawer()
 {
     return &mStatusDrawer;
+}
+
+void Screen::drawError(const String &text)
+{
+    BoardController::debug("ERROR: " + text);
+    // TODO draw error
+}
+
+bool Screen::updateScreenData()
+{
+    NetworkManager networkManager;
+    // connect to wifi
+    const bool connectedToWifi = networkManager.connectToWifi() != WL_CONNECTED;
+    // draw status
+    statusDrawer()->drawStatus(networkManager.signalStrength());
+    if (!connectedToWifi) {
+        drawError("WiFi disconnected!");
+        return false;
+    }
+    // send request
+    networkManager.requestDataToDraw();
+    if (networkManager.response().isEmpty()) {
+        drawError("Response is empty");
+        return false;
+    }
+    // parse response
+    JsonParser parser;
+    if (!parser.parse(networkManager.response())) {
+        drawError("Response parsing error!");
+        return false;
+    }
+    // update screen using data
+    const JsonData &data = parser.data();
+    statusDrawer()->drawTime(data.time);
+    // TODO draw things using parsed data
+
+
+    return true;
 }

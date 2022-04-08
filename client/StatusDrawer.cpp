@@ -5,16 +5,16 @@
 
 StatusDrawer::StatusDrawer() 
 {
-
+    mHeight = 60;
+    mY = 5;
+    mX = SCREEN_WIDTH - 250;
 }
 
-void StatusDrawer::drawStatus(int16_t x, int16_t y, int16_t wifiStrength, const String &time)
+void StatusDrawer::drawStatus(int16_t wifiStrength)
 {
     const int16_t height = 30;
-    drawBattery(x, y, height);
-    x += height * 2;
-    drawWifi(x, y, height, wifiStrength);
-    drawTime(x, y, height, time);
+    drawBattery(mX, mY, mHeight);
+    drawWifi(rightSectionXPos(), mY, mHeight, wifiStrength);
 }
 
 void StatusDrawer::drawBattery(int16_t x, int16_t y, int16_t height)
@@ -68,7 +68,12 @@ void StatusDrawer::drawWifi(int16_t x, int16_t y, int16_t height, int16_t wifiSt
     }
 }
 
-void StatusDrawer::drawTime(int16_t x, int16_t y, int16_t height, const String &time)
+uint16_t StatusDrawer::rightSectionXPos() const
 {
-    Screen::drawString(x, y + height, time, Screen::LEFT, Screen::BOTTOM);
+    return mX + 120;
+}
+
+void StatusDrawer::drawTime(const String &time)
+{
+    Screen::drawString(rightSectionXPos(), mY + mHeight, time, Screen::LEFT, Screen::BOTTOM);
 }

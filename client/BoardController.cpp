@@ -12,7 +12,7 @@ BoardController::BoardController()
     Serial.begin(115200);
 }
 
-void BoardController::debug(const String& str)
+void BoardController::debug(const String &str)
 {
     Serial.println(String(" | ") + String(millis() - mStartTime) + " - " + str);
 }

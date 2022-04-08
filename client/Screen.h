@@ -15,7 +15,6 @@
 class Screen {
 public:
     Screen();
-    ~Screen();
     enum Alignment {
         TOP,
         BOTTOM,
@@ -29,13 +28,16 @@ public:
     static U8G2_FOR_ADAFRUIT_GFX u8g2Fonts; // Select u8g2 font from here: https://github.com/olikraus/u8g2/wiki/fntlistall
 
     static void display();
+
+    bool updateScreenData();
     WeatherDrawer* weatherDrawer();
     PlotDrawer* plotDrawer();
     StatusDrawer* statusDrawer();
 
     static void drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint16_t width, Alignment direction, uint16_t color = GxEPD_BLACK);
     static void drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint16_t color = GxEPD_BLACK);
-    static void drawString(int16_t x, int16_t y, const String& text, Alignment horizontalAlignment = LEFT, Alignment verticalAlignment = TOP);
+    static void drawString(int16_t x, int16_t y, const String &text, Alignment horizontalAlignment = LEFT, Alignment verticalAlignment = TOP);
+    static void drawError(const String &text);
 
 private:
     WeatherDrawer mWeatherDrawer;

@@ -18,15 +18,16 @@ NetworkManager::~NetworkManager()
 
 bool NetworkManager::sendRequest(WiFiClient &client) 
 {
+    mResponse.clear();
     // close connection before sending a new request
     client.stop(); 
     HTTPClient http;
     http.begin(client, serverAddress, serverPort, "/");
     int httpCode = http.GET();
     if (httpCode == HTTP_CODE_OK) {
-        String payload = http.getString();
+        mResponse = http.getString();
         BoardController::debug("Received data:");
-        BoardController::debug(payload);
+        BoardController::debug(mResponse);
         client.stop();
         http.end();
         return true;
@@ -42,13 +43,13 @@ bool NetworkManager::sendRequest(WiFiClient &client)
 
 bool NetworkManager::requestDataToDraw() 
 {
-    int8_t Attempts = 0;
-    bool GotData = false;
+    int8_t attemptCount = 0;
+    bool gotData = false;
     WiFiClient client;
     BoardController::debug("Trying to send request");
-    while (GotData == false && Attempts <= 2) {
-        GotData = sendRequest(client);
-        Attempts++;
+    while (gotData == false && attemptCount <= 2) {
+        gotData = sendRequest(client);
+        attemptCount++;
     }
 }
 
@@ -63,17 +64,17 @@ uint8_t NetworkManager::connectToWifi()
     WiFi.setAutoConnect(true);
     WiFi.setAutoReconnect(true);
     WiFi.begin(wifiSsid, wifiPassword);
-    unsigned long start = millis();
+    const unsigned long startTime = millis();
     uint8_t connectionStatus;
-    bool AttemptConnection = true;
-    while (AttemptConnection) {
+    bool attemptConnection = true;
+    while (attemptConnection) {
         connectionStatus = WiFi.status();
         // Wait 15-secs maximum
-        if (millis() > start + 15000) { 
-            AttemptConnection = false;
+        if (millis() > startTime + 15000) { 
+            attemptConnection = false;
         }
         if (connectionStatus == WL_CONNECTED || connectionStatus == WL_CONNECT_FAILED) {
-            AttemptConnection = false;
+            attemptConnection = false;
         }
         delay(50);
     }
@@ -81,8 +82,9 @@ uint8_t NetworkManager::connectToWifi()
         // Get Wifi Signal strength now, because the WiFi will be turned off to save power!
         mSignalStrength = WiFi.RSSI(); 
         BoardController::debug("WiFi connected at: " + WiFi.localIP().toString());
-    } else
+    } else {
         BoardController::debug("WiFi connection *** FAILED ***");
+    }
     return connectionStatus;
 }
 
@@ -95,4 +97,9 @@ void NetworkManager::stopWiFi()
 int16_t NetworkManager::signalStrength() const
 {
     return mSignalStrength;
+}
+
+String NetworkManager::response() const
+{
+    return mResponse;
 }
