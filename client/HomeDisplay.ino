@@ -1,8 +1,6 @@
 //
-#define BUILTIN_LED 13
-
 #include "Screen.h"
-#include "SleepController.h"
+#include "BoardController.h"
 #include "NetworkManager.h"
 
 #include "WiFiType.h"
@@ -12,11 +10,10 @@
 //#########################################################################################
 void setup()
 {
-    Serial.begin(115200);
-    changeLed(true);
-    SleepController sleepController;
+    BoardController board;
+    board.changeLed(true);
     updateScreenData();
-    sleepController.sleep(2 * 60);
+    board.sleep(2 * 60);
 }
 
 void updateScreenData()
@@ -33,10 +30,4 @@ void updateScreenData()
 //#########################################################################################
 void loop()
 { // this will never run!
-}
-
-void changeLed(bool show)
-{
-    pinMode(BUILTIN_LED, OUTPUT);
-    digitalWrite(BUILTIN_LED, show ? HIGH : LOW);
 }
