@@ -11,7 +11,7 @@ public:
     void sleep(int16_t secs);
 
 private:
-    int mStartTime;
+    int mStartTime = 0;
 };
 
 #endif //SLEEPCONTROLLER_H

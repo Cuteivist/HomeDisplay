@@ -1,6 +1,7 @@
 #ifndef SCREEN_H
 #define SCREEN_H
 
+#define  ENABLE_GxEPD2_display 1
 #include <GxEPD2_BW.h>
 #include <U8g2_for_Adafruit_GFX.h>
 
@@ -32,7 +33,8 @@ public:
     PlotDrawer* plotDrawer();
     StatusDrawer* statusDrawer();
 
-    static void drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y, uint16_t color = GxEPD_BLACK);
+    static void drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint16_t width, Alignment direction, uint16_t color = GxEPD_BLACK);
+    static void drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint16_t color = GxEPD_BLACK);
     static void drawString(int16_t x, int16_t y, const String& text, Alignment horizontalAlignment = LEFT, Alignment verticalAlignment = TOP);
 
 private:

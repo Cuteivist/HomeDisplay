@@ -57,7 +57,14 @@ void StatusDrawer::drawWifi(int16_t x, int16_t y, int16_t height, int16_t wifiSt
             Screen::mDisplay.drawRect(barX, barY, barWidth, barHeight, GxEPD_BLACK);
         }
     }
-    // Screen::drawString(x, y + height, String(rssi) + "dBm", Screen::LEFT, Screen::BOTTOM);
+
+    if (wifiStrength <= -1000) {
+        // If not connected draw 'x' above first two bars
+        const float lineLength = maxBarHeight * 0.5;
+        const uint16_t lineWidth = barWidth * 0.7;
+        Screen::drawLine(x, y, x + lineLength, y + lineLength, lineWidth, Screen::RIGHT , GxEPD_BLACK);
+        Screen::drawLine(x, y + lineLength, x + lineLength, y, lineWidth, Screen::RIGHT, GxEPD_BLACK);
+    }
 }
 
 void StatusDrawer::drawTime(int16_t x, int16_t y, int16_t height, const String &time)

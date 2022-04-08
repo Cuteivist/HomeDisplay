@@ -35,16 +35,42 @@ Screen::Screen()
     u8g2Fonts.setFont(u8g2_font_helvB10_tf); // select u8g2 font from here: https://github.com/olikraus/u8g2/wiki/fntlistall
     mDisplay.fillScreen(GxEPD_WHITE);
     mDisplay.setFullWindow();
-    Serial.write("Display initialization finished.\n");
+    Serial.println("Display initialization finished.");
 }
 
 Screen::~Screen()
 {
+    display();
 }
 
 void Screen::display()
 {
     mDisplay.display();
+}
+
+void Screen::drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint16_t width, Alignment direction, uint16_t color)
+{
+    for (uint16_t i = 1 ; i <= width ; i++) {
+        switch(direction) {
+        case TOP:
+            y0--;
+            y1--;
+            break;
+        case BOTTOM:
+            y0++;
+            y1++;
+            break;
+        case LEFT:
+            x0--;
+            x1--;
+            break;
+        default:
+            x0++;
+            x1++;
+            break;
+        }
+        drawLine(x0, y0, x1, y1, color);
+    }
 }
 
 void Screen::drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint16_t color)
@@ -54,7 +80,7 @@ void Screen::drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint16_t c
 
 void Screen::drawString(int16_t x, int16_t y, const String &text, Alignment horizontalAlignment, Alignment verticalAlignment)
 {
-    Serial.write(String("Printing text: '" + text + "'\n").c_str());
+    Serial.println("Printing text: '" + text + "'");
     int16_t x1, y1; // the bounds of x,y and w and h of the variable 'text' in pixels.
     uint16_t w, h;
     mDisplay.setTextWrap(false);

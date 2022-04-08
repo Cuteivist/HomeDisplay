@@ -1,11 +1,22 @@
+#include "NetworkManager.h"
+
 #include <HTTPClient.h>
+#include <WiFi.h>
 
 #include "credentials.h"
 
-int wifi_signal = 0;
+NetworkManager::NetworkManager()
+{
 
-// ########################### HTTP ###########################
-bool sendRequest(WiFiClient &client) {
+}
+
+NetworkManager::~NetworkManager()
+{
+    stopWiFi();
+}
+
+bool NetworkManager::sendRequest(WiFiClient &client) 
+{
     client.stop(); // close connection before sending a new request
     HTTPClient http;
     http.begin(client, "pc.lan", 8881, "/"); // TODO change to pi address later when server moved to PI
@@ -27,18 +38,21 @@ bool sendRequest(WiFiClient &client) {
     return true;
 }
 
-bool requestDataToDraw() {
+bool NetworkManager::requestDataToDraw() 
+{
     int8_t Attempts = 0;
     bool GotData = false;
     WiFiClient client; // wifi client object
-    Serial.write("Trying to send request");
+    Serial.println("Trying to send request");
     while (GotData == false && Attempts <= 2) {
         GotData = sendRequest(client);
         Attempts++;
     }
 }
-// ###########################  WIFI ###########################
-uint8_t startWiFi() {
+
+uint8_t NetworkManager::connectToWifi() 
+{
+    mSignalStrength = -1000;
     Serial.print("\r\nConnecting to: ");
     Serial.println(String(ssid));
     IPAddress dns(8, 8, 8, 8); // Google DNS
@@ -61,14 +75,20 @@ uint8_t startWiFi() {
         delay(50);
     }
     if (connectionStatus == WL_CONNECTED) {
-        wifi_signal = WiFi.RSSI(); // Get Wifi Signal strength now, because the WiFi will be turned off to save power!
+        mSignalStrength = WiFi.RSSI(); // Get Wifi Signal strength now, because the WiFi will be turned off to save power!
         Serial.println("WiFi connected at: " + WiFi.localIP().toString());
     } else
         Serial.println("WiFi connection *** FAILED ***");
     return connectionStatus;
 }
 
-void stopWiFi() {
+void NetworkManager::stopWiFi() 
+{
     WiFi.disconnect();
     WiFi.mode(WIFI_OFF);
+}
+
+int16_t NetworkManager::signalStrength() const
+{
+    return mSignalStrength;
 }
