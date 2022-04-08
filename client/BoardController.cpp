@@ -14,12 +14,12 @@ BoardController::BoardController()
 void BoardController::debug(const String& str)
 {
     // TODO add timestamp to debug
-    Serial.println(str);
+    Serial.println(String(" | ") + str);
 }
 
 void BoardController::debug(char* str)
 {
-    Serial.println(str);
+    debug(String(str));
 }
 
 void BoardController::sleep(int16_t secs) 
@@ -30,9 +30,9 @@ void BoardController::sleep(int16_t secs)
     pinMode(BUILTIN_LED, INPUT); // If it's On, turn it off and some boards use GPIO-5 for SPI-SS, which remains low after screen use
     digitalWrite(BUILTIN_LED, LOW);
 #endif
-    Serial.println("Entering " + String(secs) + "-secs of sleep time");
-    // Serial.println("Awake for : " + String((millis() - mStartTime) / 1000.0, 3) + "-secs");
-    Serial.println("Starting deep-sleep period...");
+    debug("Entering " + String(secs) + "-secs of sleep time");
+    // debug("Awake for : " + String((millis() - mStartTime) / 1000.0, 3) + "-secs");
+    debug("Starting deep-sleep period...");
     esp_deep_sleep_start();      // Sleep for e.g. 30 minutes
 }
 

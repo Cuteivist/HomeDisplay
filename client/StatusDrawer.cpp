@@ -1,6 +1,7 @@
 #include "StatusDrawer.h"
 
 #include "Screen.h"
+#include "BoardController.h"
 
 StatusDrawer::StatusDrawer() 
 {
@@ -24,7 +25,7 @@ void StatusDrawer::drawBattery(int16_t x, int16_t y, int16_t height)
         return;
     }
     const float percentage = voltage / 4.2;
-    Serial.println("Voltage = " + String(voltage));
+    BoardController::debug("Voltage = " + String(voltage));
     const float batteryIconWidth = height / 3;
     const float batteryIconYOffset = height * 0.1;
     const float batteryIconHeight = height - batteryIconYOffset;

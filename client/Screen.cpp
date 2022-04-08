@@ -1,5 +1,7 @@
 #include "screen.h"
 
+#include "BoardController.h"
+
 #include <SPI.h>
 
 #define SMALL_CLOUD_SIZE 6
@@ -35,7 +37,7 @@ Screen::Screen()
     u8g2Fonts.setFont(u8g2_font_helvB10_tf); // select u8g2 font from here: https://github.com/olikraus/u8g2/wiki/fntlistall
     mDisplay.fillScreen(GxEPD_WHITE);
     mDisplay.setFullWindow();
-    Serial.println("Display initialization finished.");
+    BoardController::debug("Display initialization finished.");
 }
 
 Screen::~Screen()
@@ -80,7 +82,7 @@ void Screen::drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint16_t c
 
 void Screen::drawString(int16_t x, int16_t y, const String &text, Alignment horizontalAlignment, Alignment verticalAlignment)
 {
-    Serial.println("Printing text: '" + text + "'");
+    BoardController::debug("Printing text: '" + text + "'");
     int16_t x1, y1; // the bounds of x,y and w and h of the variable 'text' in pixels.
     uint16_t w, h;
     mDisplay.setTextWrap(false);

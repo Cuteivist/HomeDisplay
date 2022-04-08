@@ -1,5 +1,6 @@
 #include "NetworkManager.h"
 
+#include "BoardController.h"
 #include <HTTPClient.h>
 #include <WiFi.h>
 
@@ -23,8 +24,8 @@ bool NetworkManager::sendRequest(WiFiClient &client)
     int httpCode = http.GET();
     if (httpCode == HTTP_CODE_OK) {
         String payload = http.getString();
-        Serial.println("Received data:");
-        Serial.println(payload);
+        BoardController::debug("Received data:");
+        BoardController::debug(payload);
         client.stop();
         http.end();
         return true;
@@ -43,7 +44,7 @@ bool NetworkManager::requestDataToDraw()
     int8_t Attempts = 0;
     bool GotData = false;
     WiFiClient client; // wifi client object
-    Serial.println("Trying to send request");
+    BoardController::debug("Trying to send request");
     while (GotData == false && Attempts <= 2) {
         GotData = sendRequest(client);
         Attempts++;
@@ -54,7 +55,7 @@ uint8_t NetworkManager::connectToWifi()
 {
     mSignalStrength = -1000;
     Serial.print("\r\nConnecting to: ");
-    Serial.println(String(ssid));
+    BoardController::debug(String(ssid));
     IPAddress dns(8, 8, 8, 8); // Google DNS
     WiFi.disconnect();
     WiFi.mode(WIFI_STA); // switch off AP
@@ -76,9 +77,9 @@ uint8_t NetworkManager::connectToWifi()
     }
     if (connectionStatus == WL_CONNECTED) {
         mSignalStrength = WiFi.RSSI(); // Get Wifi Signal strength now, because the WiFi will be turned off to save power!
-        Serial.println("WiFi connected at: " + WiFi.localIP().toString());
+        BoardController::debug("WiFi connected at: " + WiFi.localIP().toString());
     } else
-        Serial.println("WiFi connection *** FAILED ***");
+        BoardController::debug("WiFi connection *** FAILED ***");
     return connectionStatus;
 }
 
