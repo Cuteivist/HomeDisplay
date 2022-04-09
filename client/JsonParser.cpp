@@ -1,6 +1,7 @@
 #include "JsonParser.h"
 
 #include <ArduinoJson.h> // https://github.com/bblanchon/ArduinoJson needs version v6 or above
+#include "Logger.h"
 
 JsonParser::JsonParser()
 {
@@ -14,11 +15,14 @@ bool JsonParser::parse(const String &data)
         return false;
     }
     DynamicJsonDocument doc(1024);
-    deserializeJson(doc, data);
+    DeserializationError err = deserializeJson(doc, data);
 
-    if (doc.isNull()) {
+    if (err) {
+        DEBUG("Deserialization error: " + String(err.c_str()));
         return false;
     }
+
+    mData.time = doc["time"].as<const char*>();
 
     return true;
 }

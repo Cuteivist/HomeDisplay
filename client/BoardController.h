@@ -10,11 +10,6 @@ public:
 
     void sleep(int16_t secs);
     void changeLed(bool show);
-    static void debug(const String &str);
-    static void debug(char* str);
-
-private:
-    static int mStartTime;
 };
 
 #endif //SLEEPCONTROLLER_H

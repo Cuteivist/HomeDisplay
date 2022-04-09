@@ -1,6 +1,6 @@
 #include "NetworkManager.h"
 
-#include "BoardController.h"
+#include "Logger.h"
 #include <HTTPClient.h>
 #include <WiFi.h>
 
@@ -23,11 +23,12 @@ bool NetworkManager::sendRequest(WiFiClient &client)
     client.stop(); 
     HTTPClient http;
     http.begin(client, serverAddress, serverPort, "/");
+    DEBUG("Trying to send request: " + String(serverAddress) + ":" + String(serverPort));
     int httpCode = http.GET();
     if (httpCode == HTTP_CODE_OK) {
         mResponse = http.getString();
-        BoardController::debug("Received data:");
-        BoardController::debug(mResponse);
+        DEBUG("Received data:");
+        DEBUG(mResponse);
         client.stop();
         http.end();
         return true;
@@ -46,7 +47,6 @@ bool NetworkManager::requestDataToDraw()
     int8_t attemptCount = 0;
     bool gotData = false;
     WiFiClient client;
-    BoardController::debug("Trying to send request");
     while (gotData == false && attemptCount <= 2) {
         gotData = sendRequest(client);
         attemptCount++;
@@ -56,7 +56,7 @@ bool NetworkManager::requestDataToDraw()
 uint8_t NetworkManager::connectToWifi() 
 {
     mSignalStrength = -1000;
-    BoardController::debug("Connecting to: " + String(wifiSsid));
+    DEBUG("Connecting to: " + String(wifiSsid));
     IPAddress dns(8, 8, 8, 8); // Google DNS
     WiFi.disconnect();
     // switch off AP
@@ -81,9 +81,9 @@ uint8_t NetworkManager::connectToWifi()
     if (connectionStatus == WL_CONNECTED) {
         // Get Wifi Signal strength now, because the WiFi will be turned off to save power!
         mSignalStrength = WiFi.RSSI(); 
-        BoardController::debug("WiFi connected at: " + WiFi.localIP().toString());
+        DEBUG("WiFi connected with IP: " + WiFi.localIP().toString());
     } else {
-        BoardController::debug("WiFi connection *** FAILED ***");
+        DEBUG("WiFi connection *** FAILED ***");
     }
     return connectionStatus;
 }

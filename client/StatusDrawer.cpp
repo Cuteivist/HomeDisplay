@@ -1,18 +1,17 @@
 #include "StatusDrawer.h"
 
 #include "Screen.h"
-#include "BoardController.h"
+#include "Logger.h"
 
 StatusDrawer::StatusDrawer() 
 {
-    mHeight = 60;
+    mHeight = 30;
     mY = 5;
-    mX = SCREEN_WIDTH - 250;
+    mX = SCREEN_WIDTH - 120;
 }
 
 void StatusDrawer::drawStatus(int16_t wifiStrength)
 {
-    const int16_t height = 30;
     drawBattery(mX, mY, mHeight);
     drawWifi(rightSectionXPos(), mY, mHeight, wifiStrength);
 }
@@ -25,7 +24,7 @@ void StatusDrawer::drawBattery(int16_t x, int16_t y, int16_t height)
         return;
     }
     const float percentage = voltage / 4.2;
-    BoardController::debug("Voltage = " + String(voltage));
+    DEBUG("Voltage = " + String(voltage));
     const float batteryIconWidth = height / 3;
     const float batteryIconYOffset = height * 0.1;
     const float batteryIconHeight = height - batteryIconYOffset;
@@ -70,7 +69,7 @@ void StatusDrawer::drawWifi(int16_t x, int16_t y, int16_t height, int16_t wifiSt
 
 uint16_t StatusDrawer::rightSectionXPos() const
 {
-    return mX + 120;
+    return mX + 60;
 }
 
 void StatusDrawer::drawTime(const String &time)

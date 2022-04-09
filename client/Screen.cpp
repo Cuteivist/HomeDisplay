@@ -1,8 +1,8 @@
 #include "screen.h"
 
-#include "BoardController.h"
 #include "NetworkManager.h"
 #include "JsonParser.h"
+#include "Logger.h"
 
 #include <SPI.h>
 #include "WiFiType.h"
@@ -40,7 +40,7 @@ Screen::Screen()
     u8g2Fonts.setFont(u8g2_font_helvB10_tf); // select u8g2 font from here: https://github.com/olikraus/u8g2/wiki/fntlistall
     mDisplay.fillScreen(GxEPD_WHITE);
     mDisplay.setFullWindow();
-    BoardController::debug("Display initialization finished.");
+    DEBUG("Display initialization finished.");
 }
 
 void Screen::display()
@@ -80,7 +80,7 @@ void Screen::drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint16_t c
 
 void Screen::drawString(int16_t x, int16_t y, const String &text, Alignment horizontalAlignment, Alignment verticalAlignment)
 {
-    BoardController::debug("Printing text: '" + text + "'");
+    DEBUG("Printing text: '" + text + "'");
     int16_t x1, y1; // the bounds of x,y and w and h of the variable 'text' in pixels.
     uint16_t w, h;
     mDisplay.setTextWrap(false);
@@ -125,7 +125,7 @@ StatusDrawer* Screen::statusDrawer()
 
 void Screen::drawError(const String &text)
 {
-    BoardController::debug("ERROR: " + text);
+    DEBUG("ERROR: " + text);
     // TODO draw error
 }
 
@@ -133,7 +133,7 @@ bool Screen::updateScreenData()
 {
     NetworkManager networkManager;
     // connect to wifi
-    const bool connectedToWifi = networkManager.connectToWifi() != WL_CONNECTED;
+    const bool connectedToWifi = networkManager.connectToWifi() == WL_CONNECTED;
     // draw status
     statusDrawer()->drawStatus(networkManager.signalStrength());
     if (!connectedToWifi) {

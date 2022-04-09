@@ -13,14 +13,14 @@ bool updateLocalTime() {
     // char time_output[30], day_output[30], update_time[30];
     // while (!getLocalTime(&timeinfo, 10000))
     // { // Wait for 10-sec for time to synchronise
-    //     BoardController::debug("Failed to obtain time");
+    //     DEBUG("Failed to obtain time");
     //     return false;
     // }
     // CurrentHour = timeinfo.tm_hour;
     // CurrentMin = timeinfo.tm_min;
     // CurrentSec = timeinfo.tm_sec;
     //  //See http://www.cplusplus.com/reference/ctime/strftime/
-    // BoardController::debug(&timeinfo, "%a %b %d %Y   %H:%M:%S"); 
+    // DEBUG(&timeinfo, "%a %b %d %Y   %H:%M:%S"); 
     // Displays: Saturday, June 24 2017 14:05:49
     //  if (Units == "M") {
     //    if ((Language == "CZ") || (Language == "DE") || (Language == "PL") || (Language == "NL")){
