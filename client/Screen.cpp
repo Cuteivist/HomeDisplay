@@ -135,7 +135,7 @@ bool Screen::updateScreenData()
     // connect to wifi
     const bool connectedToWifi = networkManager.connectToWifi() == WL_CONNECTED;
     // draw status
-    statusDrawer()->drawStatus(networkManager.signalStrength());
+    statusDrawer()->drawStatus(networkManager.signalStrength(), "Ver: 0.1 [debug]");
     if (!connectedToWifi) {
         drawError("WiFi disconnected!");
         return false;

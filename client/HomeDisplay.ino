@@ -15,7 +15,7 @@ void setup()
     delay(2000);
     Screen screen;
     if (!screen.updateScreenData()) {
-        screen.statusDrawer()->drawTime("?:?:?");
+        screen.statusDrawer()->drawTime("??:??");
     }
     screen.display();
     board.sleep(2 * 60);
