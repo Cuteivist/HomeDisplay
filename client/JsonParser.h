@@ -2,10 +2,18 @@
 #define JSONPARSER_H
 
 #include <WString.h>
+#include "PlotDrawer.h"
+
+struct JsonPlotData
+{
+    String title;
+    AxisData xAxisData, yAxisData;
+};
 
 struct JsonData
 {
     String time;
+    std::vector<JsonPlotData> plots;
 };
 
 class JsonParser

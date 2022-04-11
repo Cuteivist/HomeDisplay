@@ -1,4 +1,4 @@
-#include "screen.h"
+#include "Screen.h"
 
 #include "NetworkManager.h"
 #include "JsonParser.h"
@@ -81,6 +81,9 @@ void Screen::drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint16_t c
 void Screen::drawString(int16_t x, int16_t y, const String &text, Alignment horizontalAlignment, Alignment verticalAlignment)
 {
     DEBUG("Printing text: '" + text + "'");
+    if (text.isEmpty()) {
+        return;
+    }
     int16_t x1, y1; // the bounds of x,y and w and h of the variable 'text' in pixels.
     uint16_t w, h;
     mDisplay.setTextWrap(false);
@@ -157,6 +160,26 @@ bool Screen::updateScreenData()
     statusDrawer()->drawTime(data.time);
     // TODO draw things using parsed data
 
+    // DEBUG("Plot size: " + String(data.plots.size()));
+    // for (auto plot : data.plots) {
+    //     DEBUG("PLOT: " + plot.title);
+    //     DEBUG("X axis data:");
+    //     DEBUG("min: " + String(plot.xAxisData.min) + " max: " + String(plot.xAxisData.max));
+    //     String labels;
+    //     String values;
+    //     for (String label : plot.xAxisData.labels) {
+    //         labels += label + ", ";
+    //     }
+    //     for (float val : plot.xAxisData.values) {
+    //         values += String(val) + ", ";
+    //     }
+    //     DEBUG("LABELS: (" + labels + ")");
+    //     DEBUG("VALUES: (" + values + ")");
+    // }
+
+    for(int i = 0 ; i < 5 ; i++ ) {
+        plotDrawer()->drawPlot(10 + i * 155, SCREEN_HEIGHT - 150, 150, 150, data.plots[0].title, data.plots[0].yAxisData, data.plots[0].xAxisData);
+    }
 
     return true;
 }

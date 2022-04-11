@@ -1,6 +1,7 @@
 #include "PlotDrawer.h"
 
 #include "Screen.h"
+#include "Logger.h"
 
 PlotDrawer::PlotDrawer()
 {
@@ -11,12 +12,14 @@ void PlotDrawer::drawPlot(int16_t x, int16_t y, int16_t width, int16_t height, S
                           const AxisData &yAxis, const AxisData &xAxis)
 {
     const float diagramWidth = width * 0.85;
-    const float diagramHeight = height * 0.9;
-    const float diagramY = y + height - diagramHeight;
-    const float diagramX = x + width - diagramWidth;
+    const float titleOffset = height * 0.1;
+    const float xLabelsOffset = height * 0.1;
+    const float diagramHeight = height - titleOffset - xLabelsOffset;
+    const float diagramY = y + height - (diagramHeight + xLabelsOffset);
+    const float diagramX = x + width - diagramWidth * 1.02;
 
     const float yDiff = yAxis.max - yAxis.min;
-    float startDataX = 0, startDataY = 0, dataEndX = 0, dataEndY = 0;
+    float startDataX = 0, startDataY = 0, endDataX = 0, endDataY = 0;
     float barChartBarWidth = 0;
     float dataXOffset = 0;
 
@@ -37,27 +40,27 @@ void PlotDrawer::drawPlot(int16_t x, int16_t y, int16_t width, int16_t height, S
     if (xAxis.values.size() != yAxis.values.size() || xAxis.values.empty()) {
         dataXOffset = diagramWidth / (yAxis.values.size() - 1);
         startDataX = diagramX;
-        startDataY = getYPos(diagramY, diagramHeight, yAxis.values[0], yDiff);
+        startDataY = getYPos(diagramY, diagramHeight, yAxis.values[0], yAxis.min, yDiff);
         for (int i = 1 ; i < yAxis.values.size() ; i++) {
-            dataEndX = diagramX + i * dataXOffset;
-            dataEndY = getYPos(diagramY, diagramHeight, yAxis.values[i], yDiff);
-            Screen::mDisplay.drawLine(startDataX, startDataY, dataEndX, dataEndY, GxEPD_BLACK);
-            startDataX = dataEndX;
-            startDataY = dataEndY;
+            endDataX = diagramX + i * dataXOffset;
+            endDataY = getYPos(diagramY, diagramHeight, yAxis.values[i], yAxis.min, yDiff);
+            Screen::mDisplay.drawLine(startDataX, startDataY, endDataX, endDataY, GxEPD_BLACK);
+            startDataX = endDataX;
+            startDataY = endDataY;
         }
         return;
     }
 
     // Draw plot using X values
     const float xDiff = xAxis.max - xAxis.min;
-    startDataX = getXPos(diagramX, diagramWidth, xAxis.values[0], xDiff);
-    startDataY = getYPos(diagramY, diagramHeight, yAxis.values[0], yDiff);
+    startDataX = getXPos(diagramX, diagramWidth, xAxis.values[0], xAxis.min, xDiff);
+    startDataY = getYPos(diagramY, diagramHeight, yAxis.values[0], yAxis.min, yDiff);
     for (int i = 1 ; i < yAxis.values.size() ; i++) {
-        dataEndX = getXPos(diagramX, diagramWidth, xAxis.values[i], xDiff);
-        dataEndY = getYPos(diagramY, diagramHeight, yAxis.values[i], yDiff);
-        Screen::mDisplay.drawLine(startDataX, startDataY, dataEndX, dataEndY, GxEPD_BLACK);
-        startDataX = dataEndX;
-        startDataY = dataEndY;
+        endDataX = getXPos(diagramX, diagramWidth, xAxis.values[i], xAxis.min, xDiff);
+        endDataY = getYPos(diagramY, diagramHeight, yAxis.values[i], yAxis.min, yDiff);
+        Screen::mDisplay.drawLine(startDataX, startDataY, endDataX, endDataY, GxEPD_BLACK);
+        startDataX = endDataX;
+        startDataY = endDataY;
     }
 }
 
@@ -66,10 +69,10 @@ void PlotDrawer::drawBarchart(int16_t x, int16_t y, int16_t width, int16_t heigh
     const float diagramWidth = width * 0.85;
     const float diagramHeight = height * 0.95;
     const float diagramY = y + height - diagramHeight;
-    const float diagramX = x + width - diagramWidth;
+    const float diagramX = x + width - diagramWidth * 1.02;
     const float valueDiff = data.max - data.min;
 
-    float startDataX = 0, startDataY = 0, dataEndX = 0, dataEndY = 0;
+    float startDataX = 0, startDataY = 0, endDataX = 0, endDataY = 0;
     float dataXOffset = diagramWidth / data.values.size();
     float barChartBarWidth = dataXOffset * 0.8;;
 
@@ -80,11 +83,11 @@ void PlotDrawer::drawBarchart(int16_t x, int16_t y, int16_t width, int16_t heigh
 
     // Draw the data
     for (int i = 0 ; i < data.values.size() ; i++) {
-        dataEndX = diagramX + i * dataXOffset;
-        dataEndY = getYPos(diagramY, diagramHeight, data.values[i], valueDiff);
-        Screen::mDisplay.fillRect(dataEndX, dataEndY, barChartBarWidth, diagramY + diagramHeight - dataEndY + 2, GxEPD_BLACK);
-        startDataX = dataEndX;
-        startDataY = dataEndY;
+        endDataX = diagramX + i * dataXOffset;
+        endDataY = getYPos(diagramY, diagramHeight, data.values[i], data.min, valueDiff);
+        Screen::mDisplay.fillRect(endDataX, endDataY, barChartBarWidth, diagramY + diagramHeight - endDataY + 2, GxEPD_BLACK);
+        startDataX = endDataX;
+        startDataY = endDataY;
     }
 
     drawYLabels(diagramX, diagramY, diagramWidth, diagramHeight, data.labels);
@@ -97,7 +100,7 @@ void PlotDrawer::drawYLabels(int16_t x, int16_t y, int16_t width, int16_t height
     const float horizontalDashWithSpacing = width / horizontalDashCount;
     const float horizontalDashWidth = horizontalDashWithSpacing / 2;
     const int yAxisCount = labels.size();
-    const int yAxisLabelOffset = -width * 0.02;
+    const int yAxisLabelOffset = -4;
     const int xOffset = x + horizontalDashWidth;
     for (int i = 0; i < yAxisCount; i++) {
         // Draw dashed graph grid lines in the middle
@@ -136,12 +139,12 @@ void PlotDrawer::drawXLabels(int16_t x, int16_t y, int16_t width, int16_t height
     }
 }
 
-float PlotDrawer::getYPos(int16_t y, int16_t height, float value, float diff) const
+float PlotDrawer::getYPos(int16_t y, int16_t height, float value, float min, float diff ) const
 {
-    return y + height * (1 - value / diff);
+    return y + height * (1 - (value - min) / diff);
 }
 
-float PlotDrawer::getXPos(int16_t x, int16_t width, float value, float diff) const
+float PlotDrawer::getXPos(int16_t x, int16_t width, float value, float min, float diff) const
 {
-    return x + width * (value / diff);
+    return x + width * ((value - min) / diff);
 }
