@@ -158,27 +158,9 @@ bool Screen::updateScreenData()
     // update screen using data
     const JsonData &data = parser.data();
     statusDrawer()->drawTime(data.time);
-    // TODO draw things using parsed data
 
-    // DEBUG("Plot size: " + String(data.plots.size()));
-    // for (auto plot : data.plots) {
-    //     DEBUG("PLOT: " + plot.title);
-    //     DEBUG("X axis data:");
-    //     DEBUG("min: " + String(plot.xAxisData.min) + " max: " + String(plot.xAxisData.max));
-    //     String labels;
-    //     String values;
-    //     for (String label : plot.xAxisData.labels) {
-    //         labels += label + ", ";
-    //     }
-    //     for (float val : plot.xAxisData.values) {
-    //         values += String(val) + ", ";
-    //     }
-    //     DEBUG("LABELS: (" + labels + ")");
-    //     DEBUG("VALUES: (" + values + ")");
-    // }
-
-    for(int i = 0 ; i < 5 ; i++ ) {
-        plotDrawer()->drawPlot(10 + i * 155, SCREEN_HEIGHT - 150, 150, 150, data.plots[0].title, data.plots[0].yAxisData, data.plots[0].xAxisData);
+    for (const auto& plot : data.plots) {
+        plotDrawer()->drawLinePlot(100, 100, 200, 200, plot);
     }
 
     return true;

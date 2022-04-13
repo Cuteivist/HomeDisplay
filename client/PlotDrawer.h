@@ -5,19 +5,27 @@
 #include <vector>
 
 struct AxisData {
-    std::vector<float> values;
-    std::vector<String> labels;
     float min = 0;
     float max = 0;
+    std::vector<String> labels;
+};
+
+struct SeriesData {
+    std::vector<float> xValues, yValues;
+};
+
+struct PlotData {
+    String title;
+    AxisData xAxis, yAxis;
+    std::vector<SeriesData> series;
 };
 
 class PlotDrawer {
 public:
     PlotDrawer();
 
-    void drawPlot(int16_t x, int16_t y, int16_t width, int16_t height, String title,
-                  const std::vector<AxisData>& yAxis, const std::vector<AxisData> &xAxis);
-    void drawBarchart(int16_t x, int16_t y, int16_t width, int16_t height, String title, const AxisData &data);
+    void drawLinePlot(int16_t x, int16_t y, int16_t width, int16_t height, const PlotData &data);
+    void drawBarchart(int16_t x, int16_t y, int16_t width, int16_t height, const PlotData &data);
 
 private:
     void drawYLabels(int16_t x, int16_t y, int16_t width, int16_t height, const std::vector<String> &labels);

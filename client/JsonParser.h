@@ -4,16 +4,10 @@
 #include <WString.h>
 #include "PlotDrawer.h"
 
-struct JsonPlotData
-{
-    String title;
-    AxisData xAxisData, yAxisData;
-};
-
 struct JsonData
 {
     String time;
-    std::vector<JsonPlotData> plots;
+    std::vector<PlotData> plots;
 };
 
 class JsonParser

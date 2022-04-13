@@ -15,10 +15,12 @@ bool JsonParser::parse(const String &data)
         DEBUG("Json string is empty!");
         return false;
     }
-    DynamicJsonDocument doc(1024 * 10);
+    DEBUG("Response length: " + String(data.size()));
+    DynamicJsonDocument doc(1024 * 20);
     DeserializationError err = deserializeJson(doc, data);
 
     if (err) {
+        // TODO handle deserialiation error
         DEBUG("Deserialization error: " + String(err.c_str()));
         return false;
     }
@@ -29,35 +31,48 @@ bool JsonParser::parse(const String &data)
 
     for (const JsonVariant &plotVar : plotArray) {
         const JsonObject &plotJson = plotVar.as<JsonObject>();
-        JsonPlotData plotData;
+        PlotData plotData;
         plotData.title = plotJson["title"].as<const char*>();
         // Get x axis data
-        plotData.xAxisData.min = plotJson["xMin"].as<float>();
-        plotData.xAxisData.max = plotJson["xMax"].as<float>();
-        const JsonArray &xValues = plotJson["x"].as<JsonArray>();
-        plotData.xAxisData.values.reserve(xValues.size());
-        for (const JsonVariant &val : xValues) {
-            plotData.xAxisData.values.push_back(val.as<float>());
-        }
+        plotData.xAxis.min = plotJson["xMin"].as<float>();
+        plotData.xAxis.max = plotJson["xMax"].as<float>();
         const JsonArray &xLabels = plotJson["xLabels"].as<JsonArray>();
-        plotData.xAxisData.labels.reserve(xLabels.size());
+        plotData.xAxis.labels.reserve(xLabels.size());
         for (const JsonVariant &val : xLabels) {
-            plotData.xAxisData.labels.push_back(val.as<const char*>());
+            plotData.xAxis.labels.push_back(val.as<const char*>());
         }
         // Get y axis data
-        plotData.yAxisData.min = plotJson["yMin"].as<float>();
-        plotData.yAxisData.max = plotJson["yMax"].as<float>();
-        const JsonArray &yValues = plotJson["y"].as<JsonArray>();
-        plotData.yAxisData.values.reserve(yValues.size());
-        for (const JsonVariant &val : yValues) {
-            plotData.yAxisData.values.push_back(val.as<float>());
-        }
+        plotData.yAxis.min = plotJson["yMin"].as<float>();
+        plotData.yAxis.max = plotJson["yMax"].as<float>();
         const JsonArray &yLabels = plotJson["yLabels"].as<JsonArray>();
-        plotData.yAxisData.labels.reserve(yLabels.size());
+        plotData.yAxis.labels.reserve(yLabels.size());
         for (const JsonVariant &val : yLabels) {
-            plotData.yAxisData.labels.push_back(val.as<const char*>());
+            plotData.yAxis.labels.push_back(val.as<const char*>());
         }
 
+        // Populate x and y values
+        const JsonArray &xSeries = plotJson["x"].as<JsonArray>();
+        const JsonArray &ySeries = plotJson["y"].as<JsonArray>();
+        const size_t ySeriesSize = ySeries.size();
+        const size_t xSeriesSize = xSeries.size();
+        plotData.series.reserve(ySeriesSize);
+        for (size_t i = 0 ; i < ySeries.size() ; i++) {
+            SeriesData series;
+            const JsonArray &seriesYValues = ySeries[i].as<JsonArray>();
+            series.yValues.reserve(seriesYValues.size());
+            for (const JsonVariant &valueVar : seriesYValues) {
+                series.yValues.push_back(valueVar.as<float>());
+            }
+            if (xSeriesSize <= i) {
+                continue;
+            }
+            const JsonArray &seriesXValues = xSeries[i].as<JsonArray>();
+            series.xValues.reserve(seriesXValues.size());
+            for (const JsonVariant &valueVar : seriesXValues) {
+                series.xValues.push_back(valueVar.as<float>());
+            }
+            plotData.series.push_back(series);
+        }
         mData.plots.push_back(plotData);
     }
 
