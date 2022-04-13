@@ -7,7 +7,7 @@
 struct JsonData
 {
     String time;
-    std::vector<PlotData> plots;
+    std::vector<PlotData> homePlots;
 };
 
 class JsonParser

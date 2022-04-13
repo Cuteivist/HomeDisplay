@@ -15,8 +15,9 @@ bool JsonParser::parse(const String &data)
         DEBUG("Json string is empty!");
         return false;
     }
-    DEBUG("Response length: " + String(data.size()));
-    DynamicJsonDocument doc(1024 * 20);
+    const size_t requestSize = strlen(data.c_str());
+    DEBUG("Response length: " + String(requestSize));
+    DynamicJsonDocument doc(requestSize * 3);
     DeserializationError err = deserializeJson(doc, data);
 
     if (err) {
@@ -26,13 +27,14 @@ bool JsonParser::parse(const String &data)
     }
 
     mData.time = doc["time"].as<const char*>();
-    // TODO update json parsing
     const JsonArray &plotArray = doc["plots"].as<JsonArray>();
 
     for (const JsonVariant &plotVar : plotArray) {
         const JsonObject &plotJson = plotVar.as<JsonObject>();
         PlotData plotData;
         plotData.title = plotJson["title"].as<const char*>();
+        plotData.type = plotJson["type"].as<const char*>();
+        plotData.location = plotJson["location"].as<const char*>();
         // Get x axis data
         plotData.xAxis.min = plotJson["xMin"].as<float>();
         plotData.xAxis.max = plotJson["xMax"].as<float>();
@@ -73,7 +75,9 @@ bool JsonParser::parse(const String &data)
             }
             plotData.series.push_back(series);
         }
-        mData.plots.push_back(plotData);
+        if (plotData.location == "home") {
+            mData.homePlots.push_back(plotData);
+        }
     }
 
     return true;

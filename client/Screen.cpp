@@ -6,6 +6,7 @@
 
 #include <SPI.h>
 #include "WiFiType.h"
+#include <functional>
 
 #define SMALL_CLOUD_SIZE 6
 #define BIG_CLOUD_SIZE 17
@@ -159,8 +160,14 @@ bool Screen::updateScreenData()
     const JsonData &data = parser.data();
     statusDrawer()->drawTime(data.time);
 
-    for (const auto& plot : data.plots) {
-        plotDrawer()->drawLinePlot(100, 100, 200, 200, plot);
+    const uint16_t homePlotsSize = data.homePlots.size();
+    if (homePlotsSize > 0) {
+        const uint16_t homePlotsY = statusDrawer()->statusBarHeight() + 5;
+        const uint16_t homePlotsHeight = (SCREEN_HEIGHT - homePlotsY) / homePlotsSize;
+        const uint16_t homePlotsX = SCREEN_WIDTH - homePlotsHeight - 5;
+        for (size_t i = 0 ; i < homePlotsSize ; i++) {
+            plotDrawer()->drawLinePlot(homePlotsX, homePlotsY + i * homePlotsHeight, homePlotsHeight, homePlotsHeight, data.homePlots[i]);
+        }
     }
 
     return true;

@@ -23,6 +23,7 @@ bool NetworkManager::sendRequest(WiFiClient &client)
     client.stop(); 
     HTTPClient http;
     http.begin(client, serverAddress, serverPort, "/");
+    http.setTimeout(20000);
     DEBUG("Trying to send request: " + String(serverAddress) + ":" + String(serverPort));
     int httpCode = http.GET();
     if (httpCode == HTTP_CODE_OK) {

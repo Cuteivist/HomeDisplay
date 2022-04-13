@@ -16,6 +16,8 @@ struct SeriesData {
 
 struct PlotData {
     String title;
+    String type;
+    String location;
     AxisData xAxis, yAxis;
     std::vector<SeriesData> series;
 };
