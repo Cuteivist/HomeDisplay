@@ -25,6 +25,13 @@ void StatusDrawer::drawStatus(int16_t wifiStrength, const String &versionText)
 
 void StatusDrawer::drawBattery(int16_t x, int16_t y)
 {
+    /*
+    he ADC value is a 12-bit number, so the maximum value is 4095 (counting from 0). 
+    To convert the ADC integer value to a real voltage you’ll need to divide it by the maximum value of 4095, 
+    then double it (note above that Adafruit halves the voltage), 
+    then multiply that by the reference voltage of the ESP32 which is 3.3V and then vinally,
+    multiply that again by the ADC Reference Voltage of 1100mV.
+    */
     const float voltage = (analogRead(A13) / 4095.0) * 2 * 1.1 * 3.3;
     const bool invalidRead = voltage <= 1;
     const float percentage = invalidRead ? 0 : voltage / 4.2;

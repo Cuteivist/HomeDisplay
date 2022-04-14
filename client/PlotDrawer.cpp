@@ -92,17 +92,17 @@ void PlotDrawer::drawBarchart(int16_t x, int16_t y, int16_t width, int16_t heigh
 void PlotDrawer::drawYLabels(int16_t x, int16_t y, int16_t width, int16_t height, const std::vector<String> &labels)
 {
     // Draw Y axis labels and lines
-    const int horizontalDashCount = 20;
+    const int16_t horizontalDashCount = 20;
     const float horizontalDashWithSpacing = width / horizontalDashCount;
     const float horizontalDashWidth = horizontalDashWithSpacing / 2;
-    const int yAxisCount = labels.size();
-    const int yAxisLabelOffset = -4;
-    const int xOffset = x + horizontalDashWidth;
-    for (int i = 0; i < yAxisCount; i++) {
+    const int16_t yAxisCount = labels.size();
+    const int16_t yAxisLabelOffset = 6;
+    const int16_t xOffset = x + horizontalDashWidth;
+    for (int16_t i = 0; i < yAxisCount; i++) {
         // Draw dashed graph grid lines in the middle
         const float yOffset = y + (height * i / (yAxisCount - 1));
         // Draw Y label
-        Screen::drawString(x + yAxisLabelOffset , yOffset, labels[yAxisCount - (i + 1)], Screen::RIGHT, Screen::CENTER);
+        Screen::drawString(x - yAxisLabelOffset , yOffset, labels[yAxisCount - (i + 1)], Screen::RIGHT, Screen::CENTER);
         if (i == 0 || i == yAxisCount - 1) {
             continue;
         }

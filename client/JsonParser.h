@@ -4,10 +4,17 @@
 #include <WString.h>
 #include "PlotDrawer.h"
 
+struct JsonSensorData
+{
+    String name, description;
+    float temperature, humidity;
+};
+
 struct JsonData
 {
     String time;
     std::vector<PlotData> homePlots;
+    std::vector<JsonSensorData> sensors;
 };
 
 class JsonParser

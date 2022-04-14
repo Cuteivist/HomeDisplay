@@ -28,7 +28,6 @@ bool JsonParser::parse(const String &data)
 
     mData.time = doc["time"].as<const char*>();
     const JsonArray &plotArray = doc["plots"].as<JsonArray>();
-
     for (const JsonVariant &plotVar : plotArray) {
         const JsonObject &plotJson = plotVar.as<JsonObject>();
         PlotData plotData;
@@ -78,6 +77,18 @@ bool JsonParser::parse(const String &data)
         if (plotData.location == "home") {
             mData.homePlots.push_back(plotData);
         }
+    }
+
+    const JsonArray &sensorsArray = doc["sensors"].as<JsonArray>();
+    mData.sensors.reserve(sensorsArray.size());
+    for (const JsonVariant &sensorVar : sensorsArray) {
+        JsonSensorData sensorData;
+        const JsonObject &sensorObj = sensorVar.as<JsonObject>();
+        sensorData.name = sensorObj["name"].as<const char*>();
+        sensorData.description = sensorObj["description"].as<const char*>();
+        sensorData.temperature = sensorObj["temperature"].as<float>();
+        sensorData.humidity = sensorObj["humidity"].as<float>();
+        mData.sensors.push_back(sensorData);
     }
 
     return true;
