@@ -2,6 +2,7 @@
 #define WEATHERDRAWER_H
 
 #include <WString.h>
+#include <vector>
 
 class WeatherDrawer {
 public:
@@ -37,6 +38,7 @@ public:
 
     void drawWeather(int16_t x, int16_t y, int16_t height, Weather weather);
     void drawMoon(int16_t x, int16_t y, int16_t height, MoonPhase phase, int16_t linesize = 2);
+    Weather findMostCommonWeather(const std::vector<uint16_t> &weatherIds) const;
 
 private:
     void drawCloud(int16_t x, int16_t y, int16_t height, Weather weather, bool clearInside = true, int16_t linesize = 2);
@@ -47,6 +49,8 @@ private:
     void drawWeatherUnderCloud(int16_t x, int16_t y, int16_t height, Weather weather, int16_t linesize = 2);
     void drawFog(int16_t x, int16_t y, int16_t height, int16_t linesize = 2);
     void drawWind(int16_t x, int16_t y, int16_t height, int16_t linesize = 2);
+
+    Weather weatherIdToEnum(uint16_t id) const;
 };
 
 #endif // WEATHERDRAWER_H

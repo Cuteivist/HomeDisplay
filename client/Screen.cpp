@@ -237,23 +237,26 @@ bool Screen::updateScreenData()
         }
     }
 
+    const uint16_t forecastHeight = homePlotsWidth;
+    const uint16_t forecastY = sensorRectY - forecastHeight;
     if (!data.weatherData.tempPlotData.series.empty()) {
         const uint16_t forecastWidth = SCREEN_WIDTH - homePlotsWidth;
-        const uint16_t forecastHeight = homePlotsWidth;
-        const uint16_t forecastY = sensorRectY - forecastHeight;
-        const uint16_t forecastWeatherIconsHeight = forecastHeight * 0.15;
+        const uint16_t forecastWeatherIconsHeight = forecastHeight * 0.12;
         const uint16_t forecastDiagramY = forecastY + forecastWeatherIconsHeight;
         const uint16_t forecastDiagramHeight = forecastHeight - forecastWeatherIconsHeight;
-        Screen::mDisplay.drawRect(0, forecastY, forecastWidth, forecastHeight, GxEPD_BLACK); // DEBUG rect
         plotDrawer()->drawForecastPlot(0, forecastDiagramY, forecastWidth, forecastDiagramHeight, data.weatherData.tempPlotData, data.weatherData.rainPlotData, data.weatherData.weatherIds);
 
         const uint16_t weatherIconCount = 10;
-        const uint16_t actualWeatherIconHeight = forecastWeatherIconsHeight * 0.7;
+        const uint16_t weatherIconsPerTick = data.weatherData.weatherIds.size() / 10;
+        const uint16_t actualWeatherIconHeight = forecastWeatherIconsHeight * 0.9;
         const uint16_t weatherIconSpacing = forecastWidth * 0.9 / weatherIconCount;
         const uint16_t weatherIconXOffset = weatherIconSpacing;
-        // Forecast has 40 ticks
         for (int i = 0 ; i < weatherIconCount ; i++) {
-            weatherDrawer()->drawWeather(weatherIconXOffset + i * weatherIconSpacing, forecastY, actualWeatherIconHeight, WeatherDrawer::FullCloudy);
+            const uint16_t currentIdx = i * weatherIconsPerTick;
+            const std::vector<uint16_t> weatherIds(data.weatherData.weatherIds.begin() + currentIdx,
+                                                   data.weatherData.weatherIds.begin() + currentIdx + weatherIconsPerTick);
+            const WeatherDrawer::Weather weatherType = weatherDrawer()->findMostCommonWeather(weatherIds);
+            weatherDrawer()->drawWeather(weatherIconXOffset + i * weatherIconSpacing, forecastY, actualWeatherIconHeight, weatherType);
         }
     }
 
