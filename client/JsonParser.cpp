@@ -42,6 +42,12 @@ bool JsonParser::parse(const String &data)
         for (const JsonVariant &val : xLabels) {
             plotData.xAxis.labels.push_back(val.as<const char*>());
         }
+        const JsonArray &xLabelsPos = plotJson["xLabelsPos"].as<JsonArray>();
+        plotData.xAxis.labelPositions.reserve(xLabelsPos.size());
+        for (const JsonVariant &val : xLabelsPos) {
+            plotData.xAxis.labelPositions.push_back(val.as<float>());
+        }
+
         // Get y axis data
         plotData.yAxis.min = plotJson["yMin"].as<float>();
         plotData.yAxis.max = plotJson["yMax"].as<float>();
@@ -111,6 +117,12 @@ bool JsonParser::parse(const String &data)
         weatherData.xAxis.labels.reserve(xLabels.size());
         for (const JsonVariant &val : xLabels) {
             weatherData.xAxis.labels.push_back(val.as<const char*>());
+        }
+
+        const JsonArray &xLabelsPos = weatherObj["xLabelsPos"].as<JsonArray>();
+        weatherData.xAxis.labelPositions.reserve(xLabelsPos.size());
+        for (const JsonVariant &val : xLabelsPos) {
+            weatherData.xAxis.labelPositions.push_back(val.as<float>());
         }
 
         const JsonArray &xSeries = weatherObj["x"].as<JsonArray>();

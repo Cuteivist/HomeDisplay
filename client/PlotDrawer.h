@@ -8,6 +8,7 @@ struct AxisData {
     float min = 0;
     float max = 0;
     std::vector<String> labels;
+    std::vector<float> labelPositions;
 };
 
 struct SeriesData {
@@ -33,8 +34,9 @@ public:
 
 private:
     void drawSeries(int16_t x, int16_t y, int16_t width, int16_t height, const PlotData &data);
+    void drawBars(int16_t x, int16_t y, int16_t width, int16_t height, const PlotData &data);
     void drawYLabels(int16_t x, int16_t y, int16_t width, int16_t height, const std::vector<String> &labels, const std::vector<size_t> &boldIndexes = {});
-    void drawXLabels(int16_t x, int16_t y, int16_t width, int16_t height, const std::vector<String> &labels);
+    void drawXLabels(int16_t x, int16_t y, int16_t width, int16_t height, const std::vector<String> &labels, const std::vector<float> &labelPositions);
     float getYPos(int16_t y, int16_t height, float value, float min, float diff) const;
     float getXPos(int16_t x, int16_t width, float value, float min, float diff) const;
 };
