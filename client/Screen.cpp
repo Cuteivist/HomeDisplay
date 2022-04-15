@@ -207,10 +207,10 @@ bool Screen::updateScreenData()
     
     // Draw sensor strings
     const uint16_t sensorListSize = data.sensors.size();
+    const uint16_t sensorRectHeight = homePlotsWidth * 0.45;
+    const uint16_t sensorRectY = SCREEN_HEIGHT - sensorRectHeight;
     if (sensorListSize > 0) {
-        const uint16_t sensorRectHeight = homePlotsWidth * 0.45;
         const uint16_t sensorRectWidth = (SCREEN_WIDTH - homePlotsWidth) / sensorListSize;
-        const uint16_t sensorRectY = SCREEN_HEIGHT - sensorRectHeight;
         const uint16_t sensorTextSpacing = sensorRectHeight * 0.05;
         const uint16_t sensorHumidityYPos = sensorRectY + sensorRectHeight - 7;
         const uint16_t sensorTemperatureYPos = sensorHumidityYPos - 25;
@@ -233,7 +233,27 @@ bool Screen::updateScreenData()
             setFontSize(-1);
 
             drawString(currentSensorX + 60, sensorHumidityYPos - 20, "%");
-            drawString(currentSensorX + 80, sensorTemperatureYPos - 25, "*C");
+            drawString(currentSensorX + 82, sensorTemperatureYPos - 25, "°C");
+        }
+    }
+
+    if (!data.weatherData.tempPlotData.series.empty()) {
+        const uint16_t forecastWidth = SCREEN_WIDTH - homePlotsWidth;
+        const uint16_t forecastHeight = homePlotsWidth;
+        const uint16_t forecastY = sensorRectY - forecastHeight;
+        const uint16_t forecastWeatherIconsHeight = forecastHeight * 0.15;
+        const uint16_t forecastDiagramY = forecastY + forecastWeatherIconsHeight;
+        const uint16_t forecastDiagramHeight = forecastHeight - forecastWeatherIconsHeight;
+        Screen::mDisplay.drawRect(0, forecastY, forecastWidth, forecastHeight, GxEPD_BLACK); // DEBUG rect
+        plotDrawer()->drawForecastPlot(0, forecastDiagramY, forecastWidth, forecastDiagramHeight, data.weatherData.tempPlotData, data.weatherData.rainPlotData, data.weatherData.weatherIds);
+
+        const uint16_t weatherIconCount = 10;
+        const uint16_t actualWeatherIconHeight = forecastWeatherIconsHeight * 0.7;
+        const uint16_t weatherIconSpacing = forecastWidth * 0.9 / weatherIconCount;
+        const uint16_t weatherIconXOffset = weatherIconSpacing;
+        // Forecast has 40 ticks
+        for (int i = 0 ; i < weatherIconCount ; i++) {
+            weatherDrawer()->drawWeather(weatherIconXOffset + i * weatherIconSpacing, forecastY, actualWeatherIconHeight, WeatherDrawer::FullCloudy);
         }
     }
 

@@ -10,10 +10,18 @@ struct JsonSensorData
     float temperature, humidity;
 };
 
+struct JsonWeatherData
+{
+    PlotData tempPlotData;
+    PlotData rainPlotData;
+    std::vector<uint16_t> weatherIds;
+};
+
 struct JsonData
 {
     String time;
     std::vector<PlotData> homePlots;
+    JsonWeatherData weatherData;
     std::vector<JsonSensorData> sensors;
 };
 

@@ -8,18 +8,46 @@ PlotDrawer::PlotDrawer()
 
 }
 
+ void PlotDrawer::drawForecastPlot(int16_t x, int16_t y, int16_t width, int16_t height, 
+                                   const PlotData &temp, const PlotData &rain, const std::vector<uint16_t> &weatherIds)
+{
+    const float diagramWidth = width - 35;
+    const float xLabelsOffset = height * 0.1;
+    const float diagramHeight = height - xLabelsOffset;
+    const float diagramY = y + height - (diagramHeight + xLabelsOffset);
+    const float diagramX = x + width - diagramWidth * 1.02;
+
+    // Draw graph rect
+    // Additional width added for border
+    Screen::mDisplay.drawRect(diagramX, diagramY, diagramWidth + 3, diagramHeight, GxEPD_BLACK);
+    // Set bold line for 0*C
+    std::vector<size_t> boldYLines;
+    for (size_t i = 0 ; i < temp.yAxis.labels.size() ; i++) {
+        if (temp.yAxis.labels[i] == "0") {
+            // Label min is at the bottom
+            boldYLines.push_back(temp.yAxis.labels.size() - i - 1);
+            break;
+        }
+    }
+    // Draw labels
+    drawYLabels(diagramX, diagramY, diagramWidth, diagramHeight, temp.yAxis.labels, boldYLines);
+    drawXLabels(diagramX, diagramY, diagramWidth, diagramHeight, temp.xAxis.labels);
+
+    if (temp.series.empty()) {
+        return;
+    }
+
+    drawSeries(diagramX, diagramY, diagramWidth, diagramHeight, temp);
+}
+
 void PlotDrawer::drawLinePlot(int16_t x, int16_t y, int16_t width, int16_t height, const PlotData &data)
 {
-    const float diagramWidth = width * 0.85;
+    const float diagramWidth = width - 35;
     const float titleOffset = height * 0.1;
     const float xLabelsOffset = height * 0.1;
     const float diagramHeight = height - titleOffset - xLabelsOffset;
     const float diagramY = y + height - (diagramHeight + xLabelsOffset);
     const float diagramX = x + width - diagramWidth * 1.02;
-
-    float startDataX = 0, startDataY = 0, endDataX = 0, endDataY = 0;
-    float barChartBarWidth = 0;
-    float dataXOffset = 0;
 
     // Draw graph rect
     // Additional width added for border
@@ -34,26 +62,7 @@ void PlotDrawer::drawLinePlot(int16_t x, int16_t y, int16_t width, int16_t heigh
         return;
     }
 
-    const size_t seriesCount = data.series.size();
-    const float yDiff = data.yAxis.max - data.yAxis.min;
-    const float xDiff = data.xAxis.max - data.xAxis.min;
-    for (size_t s = 0 ; s < seriesCount ; s++) {
-        const SeriesData &series = data.series[s];
-        if (series.xValues.size() != series.yValues.size() || series.yValues.empty()) {
-            DEBUG("Series is empty!");
-            continue;
-        }
-        const size_t dataCount = series.yValues.size();
-        startDataX = getXPos(diagramX, diagramWidth, series.xValues[0], data.xAxis.min, xDiff);
-        startDataY = getYPos(diagramY, diagramHeight, series.yValues[0], data.yAxis.min, yDiff);
-        for (int i = 1 ; i < dataCount ; i++) {
-            endDataX = getXPos(diagramX, diagramWidth, series.xValues[i], data.xAxis.min, xDiff);
-            endDataY = getYPos(diagramY, diagramHeight, series.yValues[i], data.yAxis.min, yDiff);
-            Screen::mDisplay.drawLine(startDataX, startDataY, endDataX, endDataY, GxEPD_BLACK);
-            startDataX = endDataX;
-            startDataY = endDataY;
-        }
-    }
+    drawSeries(diagramX, diagramY, diagramWidth, diagramHeight, data);
 }
 
 void PlotDrawer::drawBarchart(int16_t x, int16_t y, int16_t width, int16_t height, const PlotData &data)
@@ -89,12 +98,12 @@ void PlotDrawer::drawBarchart(int16_t x, int16_t y, int16_t width, int16_t heigh
     drawYLabels(diagramX, diagramY, diagramWidth, diagramHeight, data.yAxis.labels);
 }
 
-void PlotDrawer::drawYLabels(int16_t x, int16_t y, int16_t width, int16_t height, const std::vector<String> &labels)
+void PlotDrawer::drawYLabels(int16_t x, int16_t y, int16_t width, int16_t height, const std::vector<String> &labels, const std::vector<size_t> &boldIndexes)
 {
     // Draw Y axis labels and lines
     const int16_t horizontalDashCount = 20;
-    const float horizontalDashWithSpacing = width / horizontalDashCount;
-    const float horizontalDashWidth = horizontalDashWithSpacing / 2;
+    const float horizontalDashWidthSpacing = (float)width / (float)horizontalDashCount;
+    const float horizontalDashWidth = horizontalDashWidthSpacing / 2;
     const int16_t yAxisCount = labels.size();
     const int16_t yAxisLabelOffset = 6;
     const int16_t xOffset = x + horizontalDashWidth;
@@ -106,8 +115,14 @@ void PlotDrawer::drawYLabels(int16_t x, int16_t y, int16_t width, int16_t height
         if (i == 0 || i == yAxisCount - 1) {
             continue;
         }
-        for (int j = 0; j <= horizontalDashCount; j++) {
-            Screen::mDisplay.drawFastHLine((xOffset + j * horizontalDashWithSpacing), yOffset, horizontalDashWidth, GxEPD_BLACK);
+        const bool boldLine = std::find(boldIndexes.begin(), boldIndexes.end(), i) != boldIndexes.end();
+        for (int j = 0; j < horizontalDashCount; j++) {
+            const uint16_t currentX = xOffset + j * horizontalDashWidthSpacing;
+            Screen::mDisplay.drawFastHLine(currentX, yOffset, horizontalDashWidth, GxEPD_BLACK);
+            if (boldLine) {
+                Screen::mDisplay.drawFastHLine(currentX, yOffset + 1, horizontalDashWidth, GxEPD_BLACK);
+                Screen::mDisplay.drawFastHLine(currentX, yOffset + 2, horizontalDashWidth, GxEPD_BLACK);
+            }
         }
     }
 }
@@ -115,8 +130,8 @@ void PlotDrawer::drawYLabels(int16_t x, int16_t y, int16_t width, int16_t height
 void PlotDrawer::drawXLabels(int16_t x, int16_t y, int16_t width, int16_t height, const std::vector<String> &labels)
 {
     const int16_t horizontalDashCount = 20;
-    const float horizontalDashWithSpacing = height / horizontalDashCount;
-    const float horizontalDashWidth = horizontalDashWithSpacing / 2;
+    const float horizontalDashWidthSpacing = (float)height / (float)horizontalDashCount;
+    const float horizontalDashWidth = horizontalDashWidthSpacing / 2;
     const int16_t xAxisCount = labels.size();
     const int16_t xAxisLabelOffset = -width * 0.02;
     const int16_t bottom = y + height;
@@ -130,7 +145,7 @@ void PlotDrawer::drawXLabels(int16_t x, int16_t y, int16_t width, int16_t height
             continue;
         }
         for (int j = 1; j <= horizontalDashCount; j++) {
-            Screen::mDisplay.drawFastVLine(xOffset, bottom - j * horizontalDashWithSpacing, horizontalDashWidth, GxEPD_BLACK);
+            Screen::mDisplay.drawFastVLine(xOffset, bottom - j * horizontalDashWidthSpacing, horizontalDashWidth, GxEPD_BLACK);
         }
     }
 }
@@ -143,4 +158,29 @@ float PlotDrawer::getYPos(int16_t y, int16_t height, float value, float min, flo
 float PlotDrawer::getXPos(int16_t x, int16_t width, float value, float min, float diff) const
 {
     return x + width * ((value - min) / diff);
+}
+
+void PlotDrawer::drawSeries(int16_t x, int16_t y, int16_t width, int16_t height, const PlotData &data)
+{
+    float startDataX = 0, startDataY = 0, endDataX = 0, endDataY = 0;
+    const size_t seriesCount = data.series.size();
+    const float yDiff = data.yAxis.max - data.yAxis.min;
+    const float xDiff = data.xAxis.max - data.xAxis.min;
+    for (size_t s = 0 ; s < seriesCount ; s++) {
+        const SeriesData &series = data.series[s];
+        if (series.xValues.size() != series.yValues.size() || series.yValues.empty()) {
+            DEBUG("Series is empty!");
+            continue;
+        }
+        const size_t dataCount = series.yValues.size();
+        startDataX = getXPos(x, width, series.xValues[0], data.xAxis.min, xDiff);
+        startDataY = getYPos(y, height, series.yValues[0], data.yAxis.min, yDiff);
+        for (int i = 1 ; i < dataCount ; i++) {
+            endDataX = getXPos(x, width, series.xValues[i], data.xAxis.min, xDiff);
+            endDataY = getYPos(y, height, series.yValues[i], data.yAxis.min, yDiff);
+            Screen::mDisplay.drawLine(startDataX, startDataY, endDataX, endDataY, GxEPD_BLACK);
+            startDataX = endDataX;
+            startDataY = endDataY;
+        }
+    }
 }

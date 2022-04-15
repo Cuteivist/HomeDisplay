@@ -91,6 +91,68 @@ bool JsonParser::parse(const String &data)
         mData.sensors.push_back(sensorData);
     }
 
+    if (doc.containsKey("weather")) {
+        PlotData &weatherData = mData.weatherData.tempPlotData;
+        PlotData &rainData = mData.weatherData.rainPlotData;
+        const JsonObject &weatherObj = doc["weather"].as<JsonObject>();
+        weatherData.title = weatherObj["title"].as<const char*>();
+        weatherData.location = weatherObj["outside"].as<const char*>();
+        weatherData.type = weatherObj["type"].as<const char*>();
+        weatherData.xAxis.min = weatherObj["xMin"].as<float>();
+        weatherData.xAxis.max = weatherObj["xMax"].as<float>();
+        weatherData.yAxis.min = weatherObj["yMin"].as<float>();
+        weatherData.yAxis.max = weatherObj["yMax"].as<float>();
+        const JsonArray &yLabels = weatherObj["yLabels"].as<JsonArray>();
+        weatherData.yAxis.labels.reserve(yLabels.size());
+        for (const JsonVariant &val : yLabels) {
+            weatherData.yAxis.labels.push_back(val.as<const char*>());
+        }
+        const JsonArray &xLabels = weatherObj["xLabels"].as<JsonArray>();
+        weatherData.xAxis.labels.reserve(xLabels.size());
+        for (const JsonVariant &val : xLabels) {
+            weatherData.xAxis.labels.push_back(val.as<const char*>());
+        }
+
+        const JsonArray &xSeries = weatherObj["x"].as<JsonArray>();
+        const JsonArray &ySeries = weatherObj["y"].as<JsonArray>();
+        const size_t ySeriesSize = ySeries.size();
+        const size_t xSeriesSize = xSeries.size();
+        SeriesData series;
+        SeriesData rainSeries;
+        const JsonArray &seriesYValues = weatherObj["y"].as<JsonArray>();
+        weatherData.series.reserve(ySeriesSize);
+        series.yValues.reserve(seriesYValues.size());
+        for (const JsonVariant &valueVar : seriesYValues) {
+            series.yValues.push_back(valueVar.as<float>());
+        }
+        const JsonArray &seriesXValues = weatherObj["x"].as<JsonArray>();
+        series.xValues.reserve(seriesXValues.size());
+        rainSeries.xValues.reserve(seriesXValues.size());
+        for (const JsonVariant &valueVar : seriesXValues) {
+            series.xValues.push_back(valueVar.as<float>());
+            rainSeries.xValues.push_back(valueVar.as<float>());
+        }
+        weatherData.series.push_back(series);
+
+        // Parse rain data
+        const JsonArray &rainValues = weatherObj["rain"].as<JsonArray>();
+        rainData.series.reserve(1);
+        rainSeries.yValues.reserve(rainValues.size());
+        for (const JsonVariant &valueVar : rainValues) {
+            rainSeries.yValues.push_back(valueVar.as<float>());
+        }
+        rainData.series.push_back(rainSeries);
+        rainData.yAxis.min = 0;
+        rainData.yAxis.max = weatherObj["rainMax"].as<float>();
+
+        // Parse weather ids
+        const JsonArray &weatherIds = weatherObj["weather_id"].as<JsonArray>();
+        mData.weatherData.weatherIds.reserve(weatherIds.size());
+        for (const JsonVariant &valueVar : weatherIds) {
+            mData.weatherData.weatherIds.push_back(valueVar.as<uint16_t>());
+        }
+    }
+
     return true;
 }
 

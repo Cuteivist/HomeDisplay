@@ -26,11 +26,14 @@ class PlotDrawer {
 public:
     PlotDrawer();
 
+    void drawForecastPlot(int16_t x, int16_t y, int16_t width, int16_t height, 
+                          const PlotData &temp, const PlotData &rain, const std::vector<uint16_t> &weatherIds);
     void drawLinePlot(int16_t x, int16_t y, int16_t width, int16_t height, const PlotData &data);
     void drawBarchart(int16_t x, int16_t y, int16_t width, int16_t height, const PlotData &data);
 
 private:
-    void drawYLabels(int16_t x, int16_t y, int16_t width, int16_t height, const std::vector<String> &labels);
+    void drawSeries(int16_t x, int16_t y, int16_t width, int16_t height, const PlotData &data);
+    void drawYLabels(int16_t x, int16_t y, int16_t width, int16_t height, const std::vector<String> &labels, const std::vector<size_t> &boldIndexes = {});
     void drawXLabels(int16_t x, int16_t y, int16_t width, int16_t height, const std::vector<String> &labels);
     float getYPos(int16_t y, int16_t height, float value, float min, float diff) const;
     float getXPos(int16_t x, int16_t width, float value, float min, float diff) const;
