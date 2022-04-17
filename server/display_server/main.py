@@ -1,105 +1,18 @@
 import json
 import argparse
 import re
-from types import NoneType
 import sqlalchemy as db
 import os
 from http.server import HTTPServer, BaseHTTPRequestHandler
 import time
 import datetime
 import configparser
-import math
 import requests
-from decimal import Decimal
 from urllib.parse import urlparse
+# Project files
+import utility
 
 class DisplayServerHTTPRequestHandler(BaseHTTPRequestHandler):
-    def normalize_datetime_array(self, array):
-        array_len = len(array)
-        if array_len == 0:
-            return list()
-        elif array_len == 1:
-            return [0]
-        # Start from 0 and go to 1
-        result = [0]
-        last_element = array[-1]
-        first_element = array[0]
-        diff = (array[-1] - array[0]).total_seconds()
-        for d in array[1:]:
-            result.append(f"{((d - first_element).total_seconds() / diff):.3f}")
-        return result
-
-    def remove_duplicates(self, array1, array2):
-        length = len(array1) - 1
-        if length < 1 or len(array2) != len(array1):
-            return
-
-        # If sensor was unavaialble there will be null values
-        for i in reversed(range(length)):
-            val = array1[i]
-            if type(val) is NoneType or val == "unknown" or val == "unavailable":
-                del array1[i]
-                del array2[i]
-
-        length = len(array1) - 1
-        # Only two duplicates are neede for drawing
-        # In case values are [2, 2, 2, 3, 4]
-        # Middle 2 isn't needed, but those 2 are 
-        # required to draw flat line
-        same_value_count = 1
-        for i in reversed(range(length)):                
-            if array1[i] == array1[i + 1]:
-                if same_value_count > 1:
-                    del array1[i + 1]
-                    del array2[i + 1]
-                same_value_count += 1
-            else:
-                same_value_count = 1
-                last_value = array1[i]
-
-        
-    def nice_number(self, value, round_=False):
-        exponent = math.floor(math.log(value, 10))
-        fraction = value / 10 ** exponent
-
-        if round_:
-            if fraction < 1.5:
-                nice_fraction = 1.
-            elif fraction < 3.:
-                nice_fraction = 2.
-            elif fraction < 7.:
-                nice_fraction = 5.
-            else:
-                nice_fraction = 10.
-        else:
-            if fraction <= 1:
-                nice_fraction = 1.
-            elif fraction <= 2:
-                nice_fraction = 2.
-            elif fraction <= 5:
-                nice_fraction = 5.
-            else:
-                nice_fraction = 10.
-
-        return nice_fraction * 10 ** exponent
-
-    def nice_bounds(self, axis_start, axis_end, num_ticks=10):
-        axis_width = axis_end - axis_start
-        if axis_width == 0:
-            nice_tick = 0
-        else:
-            nice_range = self.nice_number(axis_width)
-            nice_tick = self.nice_number(nice_range / (num_ticks - 1), round_=True)
-            axis_start = math.floor(axis_start / nice_tick) * nice_tick
-            axis_end = math.ceil(axis_end / nice_tick) * nice_tick
-
-        return axis_start, axis_end, nice_tick
-
-    def remove_exponent(self, num):
-        decimal_num = Decimal(num)
-        return decimal_num.quantize(Decimal(1)) if decimal_num == decimal_num.to_integral() else decimal_num.normalize()
-
-
     def create_plot_obj(self, location, plot_type, title, x_series, y_series, plot_time):
         is_forecast = plot_type == "forecast"
         plot_obj = {
@@ -131,13 +44,13 @@ class DisplayServerHTTPRequestHandler(BaseHTTPRequestHandler):
             diff = max_y - min_y
             min_y -= diff / 2
 
-        (nice_min_y, nice_max_y, nice_tick_y) = self.nice_bounds(min_y, max_y, 5)
+        (nice_min_y, nice_max_y, nice_tick_y) = utility.nice_bounds(min_y, max_y, 5)
 
         plot_obj["yMin"] = nice_min_y
         plot_obj["yMax"] = nice_max_y
         # Add 1 to include starting point
         y_label_count = int((nice_max_y - nice_min_y) / nice_tick_y) + 1
-        plot_obj["yLabels"] = [str(self.remove_exponent(p * nice_tick_y + nice_min_y)) for p in range(0, y_label_count)]
+        plot_obj["yLabels"] = [str(utility.remove_exponent(p * nice_tick_y + nice_min_y)) for p in range(0, y_label_count)]
         
         # History plot (plot_time -> now)
         start_time = plot_time
@@ -149,13 +62,13 @@ class DisplayServerHTTPRequestHandler(BaseHTTPRequestHandler):
             start_time, end_time = end_time, start_time
             current_time = start_time
             time_diff = end_time - start_time
-            i = 0;
+            i = 0
             while True:
                 i += 1
                 current_time = current_time.replace(day=current_time.day+1, second=0, hour=0, minute=0)
                 if current_time >= end_time or i > 10:
                     break
-                x_labels.append(current_time.strftime("%d.%m"))
+                x_labels.append(current_time.strftime(f"%d.%m ({utility.weekday_to_str(current_time.weekday())})"))
                 x_labels_positions.append(f"{(current_time - start_time) / time_diff:.3f}")
         else:
             time_labels_count = 4
@@ -213,9 +126,9 @@ class DisplayServerHTTPRequestHandler(BaseHTTPRequestHandler):
                 sensor_obj = sensor_dict[sensor_name]
                 if not sensor_obj["parsed"]:
                     # Normalize list to be from 0 to 1
-                    sensor_obj['x'] = self.normalize_datetime_array(sensor_obj['x'])
+                    sensor_obj['x'] = utility.normalize_datetime_array(sensor_obj['x'])
                     # Remove dupliates
-                    self.remove_duplicates(sensor_obj['y'], sensor_obj['x'])
+                    utility.remove_duplicates(sensor_obj['y'], sensor_obj['x'])
 
                     sensor_obj["parsed"] = True
                 x_series.append(sensor_obj['x'])
@@ -270,7 +183,7 @@ class DisplayServerHTTPRequestHandler(BaseHTTPRequestHandler):
             if "rain" in weather_json_obj:
                 rain_value = weather_json_obj["rain"]["3h"]
             weather_rain_list.append(rain_value)
-        weather_timestamp_list = self.normalize_datetime_array(weather_timestamp_list)
+        weather_timestamp_list = utility.normalize_datetime_array(weather_timestamp_list)
         weather_obj = self.create_plot_obj("outside", "forecast", "", weather_timestamp_list, weather_y_list, datetime.datetime.utcfromtimestamp(response_json['list'][-1]['dt']))
         weather_obj['weather_id'] = weather_id_list
         rain_max_value = max(weather_rain_list)
@@ -279,6 +192,17 @@ class DisplayServerHTTPRequestHandler(BaseHTTPRequestHandler):
         # TODO fix xlabels
         data_json['weather'] = weather_obj
         print(f"Weather data prepared in: {round(time.time() - start_time, 4)} secs")
+
+
+    def add_sleep_info(self, data_json):
+        current_hour = datetime.datetime.now().hour
+        sleep_timeout_minutes = 30
+        if current_hour < 5 or current_hour > 23: # Between 23 and 5
+            sleep_timeout_minutes = 60
+        elif current_hour > 16  and current_hour < 20: # Between 16 and 20
+            sleep_timeout_minutes = 20
+        # Timeout is stored in seconds
+        data_json["sleep_timeout"] = sleep_timeout_minutes * 60
 
 
     def do_GET(self):
@@ -311,6 +235,8 @@ class DisplayServerHTTPRequestHandler(BaseHTTPRequestHandler):
         self.add_temp_sensors(data_json, sensor_dict)
         # Add weather forecast
         self.add_weather_data(data_json)
+        # Add how long to sleep
+        self.add_sleep_info(data_json)
 
         print(f"Request parsed in: {round(time.time() - start_time, 4)} secs")
         self.wfile.write(json.dumps(data_json).encode("utf-8"))
