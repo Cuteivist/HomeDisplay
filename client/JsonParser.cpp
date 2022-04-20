@@ -165,6 +165,8 @@ bool JsonParser::parse(const String &data)
         }
     }
 
+    mData.nextSleepTimeout = doc["sleep_timeout"].as<uint64_t>();
+
     return true;
 }
 

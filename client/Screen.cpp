@@ -42,7 +42,7 @@ Screen::Screen()
     // mDisplay.setFont(u8g2Fonts);
     mDisplay.fillScreen(GxEPD_WHITE);
     mDisplay.setFullWindow();
-    DEBUG("Display initialization finished.");
+    // DEBUG("Display initialization finished.");
 }
 
 void Screen::display()
@@ -260,5 +260,12 @@ bool Screen::updateScreenData()
         }
     }
 
+    mNextSleepTimeout = data.nextSleepTimeout;
+
     return true;
+}
+
+uint64_t Screen::nextSleepTimeout() const
+{
+    return mNextSleepTimeout;
 }

@@ -20,6 +20,7 @@ struct JsonWeatherData
 struct JsonData
 {
     String time;
+    uint64_t nextSleepTimeout;
     std::vector<PlotData> homePlots;
     JsonWeatherData weatherData;
     std::vector<JsonSensorData> sensors;
