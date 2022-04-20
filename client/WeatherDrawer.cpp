@@ -1,6 +1,8 @@
 #include "WeatherDrawer.h"
 
-#include "screen.h"
+#include "Screen.h"
+#include <map>
+#include "Logger.h"
 
 WeatherDrawer::WeatherDrawer() 
 {
@@ -364,4 +366,47 @@ String WeatherDrawer::moonToString(MoonPhase moon) const
         return "LastQuarter";
     }
     return "UNKNOWN";
+}
+
+WeatherDrawer::Weather WeatherDrawer::findMostCommonWeather(const std::vector<uint16_t> &weatherIds) const
+{
+    std::map<uint16_t, uint16_t> counters;
+    uint16_t currentValue = 0;
+    uint16_t currentMaxValueCount = 0;
+    for (uint16_t id : weatherIds) {
+        ++counters[id];
+        if (currentMaxValueCount < counters[id]) {
+            currentMaxValueCount = 1;
+            currentValue = id;
+        }
+    }
+    return weatherIdToEnum(currentValue);
+}
+
+WeatherDrawer::Weather WeatherDrawer::weatherIdToEnum(uint16_t id) const
+{
+    // Check https://openweathermap.org/weather-conditions for code descriptions
+    if (id >= 200 && id < 300) { // Thunderstorm
+        if (id < 210 || id >= 230 ) {
+            return Rainstorm;
+        }
+        return Storm;
+    } else if (id >= 300 && id < 400) { // Drizzle
+        return Rain; 
+    } else if (id >= 500 && id < 600) { // Rain
+        return Rain;
+    } else if (id >= 600 && id < 700) { // Snow
+        if (id > 610 && id < 620) {
+            return SnowWithRain;
+        }
+        return Snow;
+    } else if (id >= 700 && id < 800) { // Atmosphere
+        return Fog;
+    } else if (id > 800) { // Clouds
+        if (id <= 802) {
+            return LowCloudy;
+        }
+        return FullCloudy;
+    }
+    return Sunny;
 }

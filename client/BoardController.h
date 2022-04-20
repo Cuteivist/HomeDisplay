@@ -8,7 +8,7 @@ class BoardController
 public:
     BoardController();
 
-    void sleep(int16_t secs);
+    void sleep(uint64_t secs);
     void changeLed(bool show);
 };
 

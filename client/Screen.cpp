@@ -1,4 +1,4 @@
-#include "screen.h"
+#include "Screen.h"
 
 #include "NetworkManager.h"
 #include "JsonParser.h"
@@ -6,6 +6,7 @@
 
 #include <SPI.h>
 #include "WiFiType.h"
+#include <functional>
 
 #define SMALL_CLOUD_SIZE 6
 #define BIG_CLOUD_SIZE 17
@@ -37,15 +38,45 @@ Screen::Screen()
     u8g2Fonts.setFontDirection(0); // left to right (this is default)
     u8g2Fonts.setForegroundColor(GxEPD_BLACK); // apply Adafruit GFX color
     u8g2Fonts.setBackgroundColor(GxEPD_WHITE); // apply Adafruit GFX color
-    u8g2Fonts.setFont(u8g2_font_helvB10_tf); // select u8g2 font from here: https://github.com/olikraus/u8g2/wiki/fntlistall
+    setFontSize(-1); // Use default font size
+    // mDisplay.setFont(u8g2Fonts);
     mDisplay.fillScreen(GxEPD_WHITE);
     mDisplay.setFullWindow();
-    DEBUG("Display initialization finished.");
+    // DEBUG("Display initialization finished.");
 }
 
 void Screen::display()
 {
     mDisplay.display();
+}
+
+void Screen::setFontSize(uint16_t size)
+{
+    // select u8g2 font from here: https://github.com/olikraus/u8g2/wiki/fntlistall
+    switch(size)
+    {
+    case 8:
+        u8g2Fonts.setFont(u8g2_font_helvB08_tf);
+        return;
+    case 10:
+        u8g2Fonts.setFont(u8g2_font_helvB10_tf);
+        return;
+    case 12:
+        u8g2Fonts.setFont(u8g2_font_helvB12_tf);
+        return;
+    case 14:
+        u8g2Fonts.setFont(u8g2_font_helvB14_tf);
+        return;
+    case 18:
+        u8g2Fonts.setFont(u8g2_font_helvB18_tf);
+        return;
+    case 24:
+        u8g2Fonts.setFont(u8g2_font_helvB24_tf);
+        return;
+    default:
+        u8g2Fonts.setFont(u8g2_font_helvB10_tf);
+        return;
+    }
 }
 
 void Screen::drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint16_t width, Alignment direction, uint16_t color)
@@ -78,34 +109,37 @@ void Screen::drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint16_t c
     mDisplay.drawLine(x0, y0, x1, y1, color);
 }
 
-void Screen::drawString(int16_t x, int16_t y, const String &text, Alignment horizontalAlignment, Alignment verticalAlignment)
+Rect Screen::drawString(int16_t x, int16_t y, const String &text, Alignment horizontalAlignment, Alignment verticalAlignment)
 {
-    DEBUG("Printing text: '" + text + "'");
-    int16_t x1, y1; // the bounds of x,y and w and h of the variable 'text' in pixels.
-    uint16_t w, h;
+    Rect boundingRect;
+    // DEBUG("Printing text: '" + text + "'");
+    if (text.isEmpty()) {
+        return boundingRect;
+    }
     mDisplay.setTextWrap(false);
-    mDisplay.getTextBounds(text, x, y, &x1, &y1, &w, &h);
+    mDisplay.getTextBounds(text, x, y, &boundingRect.x, &boundingRect.y, &boundingRect.w, &boundingRect.h);
     switch (horizontalAlignment) {
     case RIGHT:
-        x -= w;
+        x -= boundingRect.w;
         break;
     case CENTER:
-        x -= w / 2;
+        x -= boundingRect.w / 2;
         break;
     default:
         break;
     }
     switch (verticalAlignment) {
     case TOP:
-        y += h;
+        y += boundingRect.h;
     case CENTER:
-        y += h / 2;
+        y += boundingRect.h / 2;
         break;
     default:
         break;
     }
     u8g2Fonts.setCursor(x, y);
     u8g2Fonts.print(text);
+    return boundingRect;
 }
 
 WeatherDrawer* Screen::weatherDrawer() 
@@ -155,8 +189,83 @@ bool Screen::updateScreenData()
     // update screen using data
     const JsonData &data = parser.data();
     statusDrawer()->drawTime(data.time);
-    // TODO draw things using parsed data
 
+    // Drow home plots
+    const uint16_t homePlotsSize = data.homePlots.size();
+    uint16_t homePlotsWidth = 0;
+    if (homePlotsSize > 0) {
+        const uint16_t homePlotsY = statusDrawer()->statusBarHeight() + 5;
+        const uint16_t homePlotsHeight = (SCREEN_HEIGHT - homePlotsY) / homePlotsSize;
+        const uint16_t homePlotsX = SCREEN_WIDTH - homePlotsHeight - 5;
+        homePlotsWidth = homePlotsHeight;
+        for (size_t i = 0 ; i < homePlotsSize ; i++) {
+            plotDrawer()->drawLinePlot(homePlotsX, homePlotsY + i * homePlotsHeight, homePlotsWidth, homePlotsHeight, data.homePlots[i]);
+        }
+    }
+
+    mDisplay.drawRect(SCREEN_WIDTH - homePlotsWidth, statusDrawer()->statusBarHeight(), 1, SCREEN_HEIGHT - statusDrawer()->statusBarHeight(), GxEPD_BLACK);
+    
+    // Draw sensor strings
+    const uint16_t sensorListSize = data.sensors.size();
+    const uint16_t sensorRectHeight = homePlotsWidth * 0.45;
+    const uint16_t sensorRectY = SCREEN_HEIGHT - sensorRectHeight;
+    if (sensorListSize > 0) {
+        const uint16_t sensorRectWidth = (SCREEN_WIDTH - homePlotsWidth) / sensorListSize;
+        const uint16_t sensorTextSpacing = sensorRectHeight * 0.05;
+        const uint16_t sensorHumidityYPos = sensorRectY + sensorRectHeight - 7;
+        const uint16_t sensorTemperatureYPos = sensorHumidityYPos - 25;
+        for(size_t i = 0 ; i < sensorListSize ; i++) {
+            const JsonSensorData &sensorData = data.sensors[i];
+            uint16_t currentSensorX = i * sensorRectWidth;
+            mDisplay.drawRect(currentSensorX, sensorRectY, sensorRectWidth, sensorRectHeight, GxEPD_BLACK);
+
+            currentSensorX += 5;
+            setFontSize(14);
+            drawString(currentSensorX, sensorRectY + 10, sensorData.name);
+            if (!sensorData.description.isEmpty()) {
+                setFontSize(10);
+                drawString(currentSensorX, sensorRectY + 25, sensorData.description);
+            }
+            setFontSize(18);
+            drawString(currentSensorX, sensorHumidityYPos, String(sensorData.humidity), LEFT, BOTTOM);
+            setFontSize(24);
+            drawString(currentSensorX, sensorTemperatureYPos, String(sensorData.temperature), LEFT, BOTTOM);
+            setFontSize(-1);
+
+            drawString(currentSensorX + 60, sensorHumidityYPos - 20, "%");
+            drawString(currentSensorX + 82, sensorTemperatureYPos - 25, "°C");
+        }
+    }
+
+    const uint16_t forecastHeight = homePlotsWidth;
+    const uint16_t forecastY = sensorRectY - forecastHeight;
+    if (!data.weatherData.tempPlotData.series.empty()) {
+        const uint16_t forecastWidth = SCREEN_WIDTH - homePlotsWidth;
+        const uint16_t forecastWeatherIconsHeight = forecastHeight * 0.12;
+        const uint16_t forecastDiagramY = forecastY + forecastWeatherIconsHeight;
+        const uint16_t forecastDiagramHeight = forecastHeight - forecastWeatherIconsHeight;
+        plotDrawer()->drawForecastPlot(0, forecastDiagramY, forecastWidth, forecastDiagramHeight, data.weatherData.tempPlotData, data.weatherData.rainPlotData, data.weatherData.weatherIds);
+
+        const uint16_t weatherIconCount = 10;
+        const uint16_t weatherIconsPerTick = data.weatherData.weatherIds.size() / 10;
+        const uint16_t actualWeatherIconHeight = forecastWeatherIconsHeight * 0.9;
+        const uint16_t weatherIconSpacing = forecastWidth * 0.9 / weatherIconCount;
+        const uint16_t weatherIconXOffset = weatherIconSpacing;
+        for (int i = 0 ; i < weatherIconCount ; i++) {
+            const uint16_t currentIdx = i * weatherIconsPerTick;
+            const std::vector<uint16_t> weatherIds(data.weatherData.weatherIds.begin() + currentIdx,
+                                                   data.weatherData.weatherIds.begin() + currentIdx + weatherIconsPerTick);
+            const WeatherDrawer::Weather weatherType = weatherDrawer()->findMostCommonWeather(weatherIds);
+            weatherDrawer()->drawWeather(weatherIconXOffset + i * weatherIconSpacing, forecastY, actualWeatherIconHeight, weatherType);
+        }
+    }
+
+    mNextSleepTimeout = data.nextSleepTimeout;
 
     return true;
+}
+
+uint64_t Screen::nextSleepTimeout() const
+{
+    return mNextSleepTimeout;
 }

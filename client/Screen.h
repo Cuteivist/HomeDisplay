@@ -12,6 +12,12 @@
 #define SCREEN_WIDTH 800 // Set for landscape mode
 #define SCREEN_HEIGHT 480
 
+struct Rect
+{
+    int16_t x = 0, y = 0;
+    uint16_t w = 0, h = 0;
+};
+
 class Screen {
 public:
     Screen();
@@ -34,14 +40,19 @@ public:
     PlotDrawer* plotDrawer();
     StatusDrawer* statusDrawer();
 
+    uint64_t nextSleepTimeout() const;
+
     static void drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint16_t width, Alignment direction, uint16_t color = GxEPD_BLACK);
     static void drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint16_t color = GxEPD_BLACK);
-    static void drawString(int16_t x, int16_t y, const String &text, Alignment horizontalAlignment = LEFT, Alignment verticalAlignment = TOP);
+    static Rect drawString(int16_t x, int16_t y, const String &text, Alignment horizontalAlignment = LEFT, Alignment verticalAlignment = TOP);
     static void drawError(const String &text);
+    static void setFontSize(uint16_t size);
 
 private:
     WeatherDrawer mWeatherDrawer;
     PlotDrawer mPlotDrawer;
     StatusDrawer mStatusDrawer;
+    // Default timeout is 3 minutes (in case connection isn't done)
+    uint64_t mNextSleepTimeout = 3 * 60;
 };
 #endif // SCREEN_H
